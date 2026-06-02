@@ -1,6 +1,9 @@
 import Category from "../models/category.model.js";
 import Product from "../../products/models/product.model.js";
 import ProductMedia from "../../products/models/productMedia.model.js";
+import User from "../../users/models/user.model.js";
+import Business from "../../users/models/userBusiness.model.js";
+import Webpage from "../../users/models/userWebpage.model.js";
 
 export const getAllCategoriesService = async () => {
   return await Category.find()
@@ -57,5 +60,49 @@ export const getCategoryDetailsService = async (slug) => {
       parentCategory: category.parentCategoryId,
     },
     subCategories: subCategoriesWithProducts,
+  };
+};
+
+export const getSubCategoryDetailsService = async (slug) => {
+  const category = await Category.findOne({ slug })
+    .populate("industryId", "name slug")
+    .populate("parentCategoryId", "name slug").lean();
+
+  if (!category) {
+    return null;
+  }
+
+  const products = await Product.find({ $or: [{ subCategoryId: category._id }, { categoryId: category._id },], })
+    .populate("categoryId", "name slug")
+    .populate("subCategoryId", "name slug")
+    .sort({ createdAt: -1 }).lean();
+
+  const finalProducts = await Promise.all(
+    products.map(async (product) => {
+      const [media, supplier, business, webpage] = await Promise.all([
+        ProductMedia.find({ productId: product._id, }).lean(),
+        User.findById(product.supplierId).select("name email phone profileImage").lean(),
+        Business.findOne({ userId: product.supplierId, }).lean(),
+        Webpage.findOne({ userId: product.supplierId, }).lean(),
+      ]);
+
+      return {
+        ...product, media,
+        supplier: supplier ? { ...supplier, business, webpage } : null,
+      };
+    })
+  );
+
+  return {
+    category: {
+      _id: category._id,
+      name: category.name,
+      slug: category.slug,
+      imageUrl: category.imageUrl,
+      categoryDescription: category.categoryDescription,
+      industry: category.industryId,
+      parentCategory: category.parentCategoryId,
+    },
+    products: finalProducts,
   };
 };

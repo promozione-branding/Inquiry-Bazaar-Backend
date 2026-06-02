@@ -4,6 +4,7 @@ import Product from "../../products/models/product.model.js";
 import ProductMedia from "../../products/models/productMedia.model.js";
 import Business from "../../users/models/userBusiness.model.js";
 import User from "../../users/models/user.model.js";
+import Webpage from "../../users/models/userWebpage.model.js";
 
 export const globalSearchService = async (query) => {
     const regex = new RegExp(query, "i");
@@ -47,24 +48,19 @@ const attachSupplierAndMedia = async (products) => {
 
     const supplierIds = [...new Set(products.map((p) => p.supplierId?._id?.toString())),];
 
-    const [media, businesses] = await Promise.all([
-        ProductMedia.find({
-            productId: { $in: productIds },
-        }).lean(),
-
-        Business.find({
-            userId: { $in: supplierIds },
-        }).lean(),
+    const [media, businesses, webpages] = await Promise.all([
+        ProductMedia.find({ productId: { $in: productIds }, }).lean(),
+        Business.find({ userId: { $in: supplierIds }, }).lean(),
+        Webpage.find({ userId: { $in: supplierIds }, }).lean(),
     ]);
 
     return products.map((product) => {
         const business = businesses.find((b) => b.userId.toString() === product.supplierId?._id?.toString());
+        const webpage = webpages.find((w) => w.userId.toString() === product.supplierId?._id?.toString());
 
         return {
-            ...product,
-            supplier: { ...product.supplierId, business, },
-            media: media.filter((m) => m.productId.toString() === product._id.toString()
-            ),
+            ...product, supplier: { ...product.supplierId, business, webpage },
+            media: media.filter((m) => m.productId.toString() === product._id.toString()),
         };
     });
 };
@@ -138,10 +134,7 @@ export const searchPageService = async (slug) => {
             .populate("subCategoryId", "name slug")
             .limit(20).lean();
 
-        const allProducts = await attachSupplierAndMedia([
-            product,
-            ...relatedProducts,
-        ]);
+        const allProducts = await attachSupplierAndMedia([product, ...relatedProducts,]);
 
         return {
             type: "product",
