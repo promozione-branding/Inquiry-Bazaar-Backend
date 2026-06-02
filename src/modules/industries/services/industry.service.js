@@ -72,7 +72,7 @@ export const getIndustryTreeService = async () => {
       $lookup: {
         from: "categories",
         let: { industryId: "$_id" },
-        pipeline: [
+        pipeline: [ 
           {
             $match: {
               $expr: {

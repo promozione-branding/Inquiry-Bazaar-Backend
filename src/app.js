@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 
 import industryRoutes from "./modules/industries/routes/industry.route.js";
 import categoryRoutes from "./modules/categories/routes/category.route.js";
+import searchRoutes from "./modules/search/routes/search.route.js";
 import connectDB from "./config/db.js";
 
 await connectDB();
@@ -44,5 +45,6 @@ app.get("/", (req, res) => {
 
 app.use("/api/industries", industryRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/search", searchRoutes);
 
 export default app;
