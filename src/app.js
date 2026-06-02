@@ -12,9 +12,8 @@ import categoryRoutes from "./modules/categories/routes/category.route.js";
 import searchRoutes from "./modules/search/routes/search.route.js";
 import connectDB from "./config/db.js";
 
-await connectDB();
-
 const app = express();
+await connectDB();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +21,6 @@ const __dirname = path.dirname(__filename);
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
-
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(

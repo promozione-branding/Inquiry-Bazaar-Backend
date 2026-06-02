@@ -1,4 +1,4 @@
-import { getAllCategoriesService, getMainCategoriesService, getSubCategoriesService } from "../services/category.service.js";
+import { getAllCategoriesService, getMainCategoriesService, getCategoryDetailsService } from "../services/category.service.js";
 
 export const getAllCategories = async (req, res) => {
   try {
@@ -42,7 +42,7 @@ export const getSubCategories = async (req, res) => {
   try {
     const { parentCategoryId } = req.params;
 
-    const subCategories = await getSubCategoriesService(parentCategoryId);
+    const subCategories = await getCategoryDetailsService(parentCategoryId);
 
     return res.status(200).json({
       success: true,
