@@ -72,7 +72,7 @@ export const getIndustryTreeService = async () => {
       $lookup: {
         from: "categories",
         let: { industryId: "$_id" },
-        pipeline: [ 
+        pipeline: [
           {
             $match: {
               $expr: {
@@ -101,7 +101,10 @@ export const getIndustryTreeService = async () => {
                     slug: 1,
                     imageUrl: 1
                   }
-                }
+                },
+                // {
+                //   $sort: { name: 1 } // subcategories A-Z
+                // }
               ],
               as: "subCategories"
             }
@@ -113,7 +116,10 @@ export const getIndustryTreeService = async () => {
               imageUrl: 1,
               subCategories: 1
             }
-          }
+          },
+          // {
+          //   $sort: { name: 1 } // categories A-Z
+          // }
         ],
         as: "categories"
       }
@@ -125,6 +131,9 @@ export const getIndustryTreeService = async () => {
         imageUrl: 1,
         categories: 1
       }
+    },
+    {
+      $sort: { name: 1 } // industries A-Z
     }
   ]);
 
