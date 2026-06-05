@@ -4,6 +4,11 @@ import Login from "../pages/Login/Login";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Category from "../pages/Category/Category";
 import ProtectedRoute from "./ProtectedRoute";
+import Sellers from "../pages/Sellers/Sellers";
+import Buyers from "../pages/Buyers/Buyers";
+import Inquiry from "../pages/Inquiry/Inquiry";
+import Help from "../pages/Help/Help";
+import Settings from "../pages/Settings/Settings";
 
 export default function AllRoutes() {
     return (
@@ -13,6 +18,11 @@ export default function AllRoutes() {
             <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/add-category" element={<Category />} />
+                <Route path="/all-sellers" element={<Sellers />} />
+                <Route path="/all-buyers" element={<Buyers />} />
+                <Route path="/inquiry" element={<Inquiry />} />
+                <Route path="/help" element={<Help />} />
+                <Route path="/settings" element={<Settings />} />
             </Route>
         </Routes>
     );

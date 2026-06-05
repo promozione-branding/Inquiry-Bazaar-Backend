@@ -17,8 +17,8 @@ export default function SideBar({ open, setOpen }) {
   const menuItems = [
     { name: "Dashboard", path: "/", icon: LayoutDashboard },
     { name: "Add Category", path: "/add-category", icon: FolderPlus },
-    { name: "All Sellers", path: "/sellers", icon: Store },
-    { name: "All Buyers", path: "/buyers", icon: Users },
+    { name: "All Sellers", path: "/all-sellers", icon: Store },
+    { name: "All Buyers", path: "/all-buyers", icon: Users },
     { name: "Inquiry", path: "/inquiry", icon: MessageSquareMore },
     { name: "Help", path: "/help", icon: CircleHelp },
     { name: "Settings", path: "/settings", icon: Settings },
