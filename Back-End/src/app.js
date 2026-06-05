@@ -4,8 +4,6 @@ import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-import path from "path";
-import { fileURLToPath } from "url";
 
 import industryRoutes from "./modules/industries/routes/industry.route.js";
 import categoryRoutes from "./modules/categories/routes/category.route.js";
@@ -18,17 +16,16 @@ import connectDB from "./config/db.js";
 const app = express();
 await connectDB();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
-app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://gr4f1m1t-5173.inc1.devtunnels.ms"],
+    origin: [
+      "http://localhost:5173",
+      "https://backend.inquirybazaar.com",
+    ],
     credentials: true,
   })
 );
@@ -37,13 +34,15 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Root route
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
-    message: "Inquiry Bazaar API is Running",
+    message: "Inquiry Bazaar Backend is Running",
   });
 });
 
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/industries", industryRoutes);
 app.use("/api/categories", categoryRoutes);
