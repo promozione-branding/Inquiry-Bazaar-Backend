@@ -81,11 +81,11 @@ export default function Dashboard() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3">Name</th>
-                    <th className="text-left py-3">Email</th>
-                    <th className="text-left py-3">Category</th>
-                    <th className="text-left py-3">Status</th>
+                  <tr className="border-b border-gray-300">
+                    <th className="text-left py-3 px-2">Name</th>
+                    <th className="text-left py-3 px-2">Email</th>
+                    <th className="text-left py-3 px-2">Category</th>
+                    <th className="text-left py-3 px-2">Status</th>
                   </tr>
                 </thead>
 

@@ -27,7 +27,7 @@ export default function Category() {
 
     fetchData();
   }, []);
-  console.log(industries)
+  // console.log(industries)
 
   return (
     <div className="flex min-h-screen bg-gray-100">

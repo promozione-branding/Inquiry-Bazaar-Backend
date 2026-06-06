@@ -11,6 +11,7 @@ import searchRoutes from "./modules/search/routes/search.route.js";
 import productRoutes from "./modules/products/routes/product.route.js";
 import userWebpageRoutes from "./modules/users/routes/userWebpage.route.js";
 import authRoutes from "./modules/users/routes/userAuth.route.js";
+import adminRoutes from "./modules/users/routes/admin.route.js";
 import connectDB from "./config/db.js";
 
 const app = express();
@@ -44,6 +45,7 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/all", adminRoutes);
 app.use("/api/industries", industryRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/search", searchRoutes);
