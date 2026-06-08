@@ -53,6 +53,19 @@ const businessSchema = new mongoose.Schema(
             type: String,
         },
 
+        city: {
+            type: String,
+            required: true,
+        },
+
+        state: {
+            type: String,
+        },
+
+        serviceLocations: [
+            { type: String, },
+        ],
+
         // Social Links
         social: {
             facebook: String,

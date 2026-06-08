@@ -1,4 +1,4 @@
-import { getAllCategoriesService, getMainCategoriesService, getCategoryDetailsService, getSubCategoryDetailsService } from "../services/category.service.js";
+import { getAllCategoriesService, getMainCategoriesService, getCategoryDetailsService, getSubCategoryDetailsService, getSubCategoryLocationDetailsService } from "../services/category.service.js";
 
 export const getAllCategories = async (req, res) => {
   try {
@@ -69,6 +69,26 @@ export const getSubCategoryDetails = async (req, res) => {
         message: "Sub category not found",
       });
     }
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getSubCategoryLocationDetails = async (req, res) => {
+  try {
+    const { slug, location } = req.params;
+
+    const data = await getSubCategoryLocationDetailsService(slug, location);
 
     return res.status(200).json({
       success: true,
