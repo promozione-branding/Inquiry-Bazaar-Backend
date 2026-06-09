@@ -44,3 +44,12 @@ export const getProductBySlugService = async (slug) => {
     relatedProducts: relatedProductsWithMedia,
   };
 };
+
+export const getAllProductService = async () => {
+  const products = await Product.find().select("name slug")
+    .sort({ createdAt: -1 }).lean();
+
+  return {
+    products,
+  };
+};
