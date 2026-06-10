@@ -149,18 +149,31 @@ export const getSubCategoryLocationDetailsService = async (slug, location) => {
 
   // const supplierIds = await Business.find({ serviceLocations: { $in: [location], }, }).distinct("userId");
 
-  const products = await Product.find({
-    supplierId: { $in: supplierIds },
-    $or: [
-      { subCategoryId: category._id, },
-      { categoryId: category._id, },
-    ],
-  }).populate("categoryId", "name slug")
-    .populate("subCategoryId", "name slug")
-    .sort({ createdAt: -1, }).lean();
+  const products = await Promise.all(
+    supplierIds.map(async (supplierId) => {
+      const supplierProducts = await Product.aggregate([
+        {
+          $match: {
+            supplierId,
+            $or: [
+              { subCategoryId: category._id },
+              { categoryId: category._id },
+            ],
+          },
+        },
+        {
+          $sample: { size: 1 }, // random product
+        },
+      ]);
+
+      return supplierProducts[0] || null;
+    })
+  );
+
+  const filteredProducts = products.filter(Boolean);
 
   const finalProducts = await Promise.all(
-    products.map(async (product) => {
+    filteredProducts.map(async (product) => {
       const [media, supplier, business, webpage,] = await Promise.all([
         ProductMedia.find({ productId: product._id, }).lean(),
         User.findById(product.supplierId).select("name email phone profileImage").lean(),
