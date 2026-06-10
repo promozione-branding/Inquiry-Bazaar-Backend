@@ -145,7 +145,9 @@ export const getSubCategoryLocationDetailsService = async (slug, location) => {
     return distance <= 200;
   });
 
-  const supplierIds = await Business.find({ serviceLocations: { $in: [location], }, }).distinct("userId");
+  const supplierIds = await Business.find({ serviceLocations: { $in: nearbyCities, }, }).distinct("userId");
+
+  // const supplierIds = await Business.find({ serviceLocations: { $in: [location], }, }).distinct("userId");
 
   const products = await Product.find({
     supplierId: { $in: supplierIds },
