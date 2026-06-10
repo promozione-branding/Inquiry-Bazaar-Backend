@@ -15,7 +15,7 @@ export default function Buyers() {
         const fetchData = async () => {
             // setLoading(true);
             try {
-                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/all/buyers`, { withCredentials: true, });
+                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/buyer/all`, { withCredentials: true, });
                 setAllBuyers(res.data.data || []);
             } catch (err) {
                 console.error(err);

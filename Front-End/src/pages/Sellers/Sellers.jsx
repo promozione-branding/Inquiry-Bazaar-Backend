@@ -4,6 +4,7 @@ import SideBar from '../../components/SideBar';
 import Header from '../../components/Header';
 import axios from 'axios';
 import { Edit, Eye, Filter, Search, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Sellers() {
     const { user } = useSelector((state) => state.auth);
@@ -15,7 +16,7 @@ export default function Sellers() {
         const fetchData = async () => {
             // setLoading(true);
             try {
-                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/all/suppliers`, { withCredentials: true, });
+                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/supplier/all`, { withCredentials: true, });
                 setAllSuppliers(res.data.data || []);
             } catch (err) {
                 console.error(err);
@@ -166,17 +167,17 @@ export default function Sellers() {
                                             </td>
                                             <td className="px-4 py-4">
                                                 <div className="flex justify-center gap-2">
-                                                    <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-500 hover:text-white transition"
+                                                    <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition"
                                                         title="View Profile"
                                                     >
                                                         <Eye size={18} />
                                                     </button>
 
-                                                    <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-100 text-green-600 hover:bg-green-500 hover:text-white transition"
-                                                        title="Delete Supplier"
+                                                    <Link to={`/edit-seller/${i?._id}`} className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-500 hover:text-white transition"
+                                                        title="Edit Supplier"
                                                     >
                                                         <Edit size={18} />
-                                                    </button>
+                                                    </Link>
                                                 </div>
                                             </td>
                                         </tr>
