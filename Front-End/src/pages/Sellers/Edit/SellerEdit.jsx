@@ -99,7 +99,7 @@ export default function SellerEdit() {
                       title="LinkedIn"
                       className="w-11 h-11 flex items-center justify-center rounded-full bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-700 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
                     >
-                      <FaLinkedin size={20} />
+                      <FaLinkedin size={22} />
                     </a>
                   )}
 
@@ -111,7 +111,7 @@ export default function SellerEdit() {
                       title="Instagram"
                       className="w-11 h-11 flex items-center justify-center rounded-full bg-pink-50 text-pink-600 border border-pink-100 hover:bg-pink-600 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
                     >
-                      <FaInstagram size={20} />
+                      <FaInstagram size={22} />
                     </a>
                   )}
 
@@ -123,7 +123,7 @@ export default function SellerEdit() {
                       title="Facebook"
                       className="w-11 h-11 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
                     >
-                      <FaFacebook size={20} />
+                      <FaFacebook size={22} />
                     </a>
                   )}
 
@@ -135,7 +135,7 @@ export default function SellerEdit() {
                       title="YouTube"
                       className="w-11 h-11 flex items-center justify-center rounded-full bg-red-50 text-red-600 border border-red-100 hover:bg-red-600 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
                     >
-                      <FaYoutube size={20} />
+                      <FaYoutube size={22} />
                     </a>
                   )}
 
@@ -147,7 +147,7 @@ export default function SellerEdit() {
                       title="Telegram"
                       className="w-11 h-11 flex items-center justify-center rounded-full bg-sky-50 text-sky-500 border border-sky-100 hover:bg-sky-500 hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
                     >
-                      <BsTelegram size={20} />
+                      <BsTelegram size={22} />
                     </a>
                   )}
 
@@ -159,7 +159,7 @@ export default function SellerEdit() {
                       title="X (Twitter)"
                       className="w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 text-black border border-gray-200 hover:bg-black hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
                     >
-                      <FaXTwitter size={20} />
+                      <FaXTwitter size={22} />
                     </a>
                   )}
                 </div>
@@ -249,14 +249,6 @@ export default function SellerEdit() {
                     value={supplierData?.business?.annualTurnover || "-"}
                   />
 
-                  <div className="md:col-span-2">
-                    <InfoItem
-                      icon={<MapPin size={16} />}
-                      label="Address"
-                      value={supplierData?.business?.address}
-                    />
-                  </div>
-
                   <InfoItem
                     icon={<MapPin size={16} />}
                     label="City"
@@ -268,6 +260,14 @@ export default function SellerEdit() {
                     label="State"
                     value={supplierData?.business?.state}
                   />
+
+                  <div className="md:col-span-2">
+                    <InfoItem
+                      icon={<MapPin size={16} />}
+                      label="Address"
+                      value={supplierData?.business?.address}
+                    />
+                  </div>
                 </div>
               )}
 
