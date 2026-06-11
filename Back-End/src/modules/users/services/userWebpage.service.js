@@ -11,13 +11,12 @@ export const getWebpageBySlugService = async (slug) => {
     const business = await Business.findOne({ userId: webpage.userId._id, }).lean();
 
     const products = await Product.find({ supplierId: webpage.userId._id, })
-        .sort({ createdAt: -1 }).limit(8).lean();
+        .sort({ createdAt: -1 }).limit(8).lean().populate("categoryId", "name slug").populate("subCategoryId", "name slug");
 
     const productsWithMedia = await Promise.all(products.map(async (product) => {
         const media = await ProductMedia.find({ productId: product._id, }).sort({ isPrimary: -1 }).lean();
         return { ...product, media, };
-    })
-    );
+    }));
 
     return {
         ...webpage,
