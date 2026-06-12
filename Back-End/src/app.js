@@ -29,6 +29,7 @@ app.use(
       "http://localhost:5173",
       "http://localhost:3000",
       "https://inquirybazaar.com",
+      "https://www.inquirybazaar.com",
       "https://backend.inquirybazaar.com",
       "https://dir.inquirybazaar.com",
     ],
