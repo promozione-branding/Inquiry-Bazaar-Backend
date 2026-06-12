@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
-import SideBar from '../../components/SideBar';
-import Header from '../../components/Header';
+import SideBar from '../../../components/SideBar';
+import Header from '../../../components/Header';
 import axios from 'axios';
-import { Edit, Eye, Filter, Headset, Search, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Edit, Eye, Filter, Search } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 
-export default function Sellers() {
+export default function SellerLeads() {
+    const { id } = useParams();
     const { user } = useSelector((state) => state.auth);
     const [openSideBar, setOpenSideBar] = useState(false);
-    const [allSuppliers, setAllSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);
-
+    const [filter, setFilter] = useState("today");
+    const [leads, setLeads] = useState([])
+    const [supplierData, setSupplierData] = useState([]);
     useEffect(() => {
         const fetchData = async () => {
-            // setLoading(true);
+            setLoading(true);
             try {
-                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/supplier/all`, { withCredentials: true, });
-                setAllSuppliers(res.data.data || []);
+                const res = await axios.get(`${import.meta.env.VITE_LEAD_BACKEND_URL}/api/form/get-forms/${id}?filter=${filter}`);
+                setLeads(res.data.data)
             } catch (err) {
                 console.error(err);
             } finally {
@@ -26,25 +28,32 @@ export default function Sellers() {
         };
 
         fetchData();
-    }, []);
+        fetchDetails()
+    }, [filter]);
+
+    const fetchDetails = async () => {
+        try {
+            const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/supplier/${id}`, { withCredentials: true, });
+            console.log(res.data.data)
+            setSupplierData(res.data.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-    const totalPages = Math.ceil(allSuppliers.length / itemsPerPage);
+    const totalPages = Math.ceil(leads.length / itemsPerPage);
 
-    const paginatedSuppliers = allSuppliers.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
-    // console.log(allSuppliers)
+    const paginatedLeads = leads.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    // console.log(leads)
 
     return (
         <div className="flex min-h-screen bg-gray-100">
             <SideBar open={openSideBar} setOpen={setOpenSideBar} />
 
             <div className="flex-1">
-                <Header user={user} name={"All Sellers"} openSideBar={openSideBar} setOpenSideBar={setOpenSideBar} />
+                <Header user={user} name={`${supplierData.name || "Loading..."}`} openSideBar={openSideBar} setOpenSideBar={setOpenSideBar} />
 
                 <main className="p-4">
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -52,10 +61,10 @@ export default function Sellers() {
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                 <div>
                                     <h2 className="text-xl font-bold text-gray-800">
-                                        Suppliers
+                                        Inquiry
                                     </h2>
                                     <p className="text-sm text-gray-500">
-                                        Total Suppliers: {allSuppliers.length}
+                                        Total Inquiry:
                                     </p>
                                 </div>
 
@@ -63,7 +72,7 @@ export default function Sellers() {
                                     <div className="relative">
                                         <input
                                             type="text"
-                                            placeholder="Search supplier..."
+                                            placeholder="Search inquiry..."
                                             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         <Search
@@ -77,11 +86,12 @@ export default function Sellers() {
                                         Filter
                                     </button>
 
-                                    <select className="px-4 py-2 border border-gray-300 rounded-lg">
-                                        <option>All Suppliers</option>
-                                        <option>Manufacturer</option>
-                                        <option>Trader</option>
-                                        <option>Exporter</option>
+                                    <select value={filter} onChange={(e) => setFilter(e.target.value)} className="px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option value="today">Today</option>
+                                        <option value="yesterday">Yesterday</option>
+                                        <option value="7days">Last 7 Days</option>
+                                        <option value="30days">Last 30 Days</option>
+                                        <option value="all">All Time</option>
                                     </select>
                                 </div>
                             </div>
@@ -92,10 +102,10 @@ export default function Sellers() {
                                 <thead className="bg-gray-50 sticky top-0">
                                     <tr>
                                         <th className="text-left py-4 px-4 font-semibold text-gray-600">
-                                            Supplier
+                                            Name
                                         </th>
                                         <th className="text-left py-4 px-4 font-semibold text-gray-600">
-                                            Company
+                                            Product
                                         </th>
                                         <th className="text-left py-4 px-4 font-semibold text-gray-600">
                                             Phone
@@ -104,7 +114,7 @@ export default function Sellers() {
                                             Email
                                         </th>
                                         <th className="text-left py-4 px-4 font-semibold text-gray-600">
-                                            Status
+                                            Time
                                         </th>
                                         <th className="text-center py-4 px-4 font-semibold text-gray-600">
                                             Actions
@@ -113,77 +123,42 @@ export default function Sellers() {
                                 </thead>
 
                                 <tbody>
-                                    {paginatedSuppliers.map((i, index) => (
+                                    {paginatedLeads.map((i, index) => (
                                         <tr key={i._id} className={`border-t border-gray-100 hover:bg-blue-50/40 transition ${index % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}>
                                             <td className="px-4 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    {i.profileImage ? (
-                                                        <img
-                                                            src={i.profileImage}
-                                                            alt={i.name}
-                                                            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-12 h-12 rounded-full text-lg bg-linear-to-r from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold">
-                                                            {(i.business?.companyName?.charAt(0) || i.name?.charAt(0) || "?").toUpperCase()}
-                                                        </div>
-                                                    )}
-
-                                                    <div>
-                                                        <h4 className="font-semibold text-gray-800">
-                                                            {i.name}
-                                                        </h4>
-
-                                                        <p className="text-sm text-gray-500">
-                                                            {i.business?.businessType ||
-                                                                "Supplier"}
-                                                        </p>
-                                                    </div>
-                                                </div>
+                                                <h4 className="font-semibold text-gray-800">
+                                                    {i.name}
+                                                </h4>
                                             </td>
                                             <td className="px-4 py-4">
-                                                <div>
-                                                    <p className="font-medium">
-                                                        {i.business?.companyName || "-"}
-                                                    </p>
-
-                                                    <p className="text-xs text-gray-500">
-                                                        {i.business?.businessField}
-                                                    </p>
-                                                </div>
+                                                <p className="font-medium">
+                                                    {i.product || "-"}
+                                                </p>
                                             </td>
                                             <td className="px-4 py-4">
                                                 {i.phone}
                                             </td>
                                             <td className="px-4 py-4">
-                                                <span className="text-gray-600">
+                                                <span className="text-gray-800">
                                                     {i.email}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">
-                                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                                    Active
-                                                </span>
+                                                {new Date(i.createdAt).toLocaleString()}
                                             </td>
                                             <td className="px-4 py-4">
                                                 <div className="flex justify-center gap-2">
-                                                    <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition"
+                                                    <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-500 hover:text-white transition"
                                                         title="View Profile"
                                                     >
                                                         <Eye size={18} />
                                                     </button>
 
-                                                    <Link to={`/seller-leads/${i?._id}`} className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-100 text-green-600 hover:bg-green-500 hover:text-white transition"
-                                                        title="Supplier Lead"
-                                                    >
-                                                        <Headset size={18} />
-                                                    </Link>
-
-                                                    <Link to={`/edit-seller/${i?._id}`} className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-500 hover:text-white transition"
-                                                        title="Edit Supplier"
+                                                    <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-100 text-green-600 hover:bg-green-500 hover:text-white transition"
+                                                        title="Delete Buyer"
                                                     >
                                                         <Edit size={18} />
-                                                    </Link>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -192,7 +167,6 @@ export default function Sellers() {
                             </table>
                         </div>
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-gray-200 bg-white">
-
                             <p className="text-sm text-gray-500">
                                 Showing{" "}
                                 <span className="font-medium">
@@ -200,22 +174,17 @@ export default function Sellers() {
                                 </span>
                                 {" "}to{" "}
                                 <span className="font-medium">
-                                    {Math.min(
-                                        currentPage * itemsPerPage,
-                                        allSuppliers.length
-                                    )}
+                                    {Math.min(currentPage * itemsPerPage, leads.length)}
                                 </span>
                                 {" "}of{" "}
                                 <span className="font-medium">
-                                    {allSuppliers.length}
+                                    {leads.length}
                                 </span>
-                                {" "}suppliers
+                                {" "}Inquiry
                             </p>
 
                             <div className="flex items-center gap-2">
-
-                                <button
-                                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                                <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                                     disabled={currentPage === 1}
                                     className="px-3 py-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                                 >
@@ -223,9 +192,7 @@ export default function Sellers() {
                                 </button>
 
                                 {[...Array(totalPages)].map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setCurrentPage(index + 1)}
+                                    <button key={index} onClick={() => setCurrentPage(index + 1)}
                                         className={`w-10 h-10 rounded-lg font-medium transition ${currentPage === index + 1
                                             ? "bg-blue-600 text-white"
                                             : "border border-gray-300 hover:bg-gray-100"
@@ -235,16 +202,12 @@ export default function Sellers() {
                                     </button>
                                 ))}
 
-                                <button
-                                    onClick={() =>
-                                        setCurrentPage((p) => Math.min(p + 1, totalPages))
-                                    }
+                                <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                                     disabled={currentPage === totalPages}
                                     className="px-3 py-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                                 >
                                     Next
                                 </button>
-
                             </div>
                         </div>
                     </div>

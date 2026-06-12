@@ -59,7 +59,7 @@ export default function SellerEdit() {
   const fetchData = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/supplier/${id}`, { withCredentials: true, });
-      console.log(res.data.data)
+      // console.log(res.data.data)
       setSupplierData(res.data.data);
     } catch (err) {
       console.error(err);

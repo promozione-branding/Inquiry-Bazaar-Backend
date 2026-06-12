@@ -167,7 +167,7 @@ export default function Inquiry() {
                                 <span className="font-medium">
                                     {leads.length}
                                 </span>
-                                {" "}Buyers
+                                {" "}Inquiry
                             </p>
 
                             <div className="flex items-center gap-2">

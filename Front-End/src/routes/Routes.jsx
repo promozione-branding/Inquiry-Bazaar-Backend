@@ -10,6 +10,7 @@ import Inquiry from "../pages/Inquiry/Inquiry";
 import Help from "../pages/Help/Help";
 import Settings from "../pages/Settings/Settings";
 import SellerEdit from "../pages/Sellers/Edit/SellerEdit";
+import SellerLeads from "../pages/Sellers/Leads/Leads";
 
 export default function AllRoutes() {
     return (
@@ -22,6 +23,7 @@ export default function AllRoutes() {
                 <Route path="/all-sellers" element={<Sellers />} />
                 <Route path="/all-sellers" element={<Sellers />} />
                 <Route path="/edit-seller/:id" element={<SellerEdit />} />
+                <Route path="/seller-leads/:id" element={<SellerLeads />} />
                 <Route path="/all-buyers" element={<Buyers />} />
                 <Route path="/inquiry" element={<Inquiry />} />
                 <Route path="/help" element={<Help />} />
