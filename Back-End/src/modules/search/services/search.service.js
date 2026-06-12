@@ -44,23 +44,79 @@ export const globalSearchService = async (query) => {
 };
 
 const attachSupplierAndMedia = async (products) => {
+
+    // One random product per supplier
+    const uniqueProducts = Object.values(
+        products.reduce((acc, product) => {
+            const supplierId = product.supplierId?._id?.toString();
+
+            if (!supplierId) return acc;
+
+            if (!acc[supplierId]) {
+                acc[supplierId] = [];
+            }
+
+            acc[supplierId].push(product);
+
+            return acc;
+        }, {})
+    ).map((supplierProducts) => {
+        return supplierProducts[
+            Math.floor(Math.random() * supplierProducts.length)
+        ];
+    });
+
+    products = uniqueProducts;
+
     const productIds = products.map((p) => p._id);
 
-    const supplierIds = [...new Set(products.map((p) => p.supplierId?._id?.toString())),];
+    const supplierIds = [
+        ...new Set(
+            products.map((p) =>
+                p.supplierId?._id?.toString()
+            )
+        ),
+    ];
 
     const [media, businesses, webpages] = await Promise.all([
-        ProductMedia.find({ productId: { $in: productIds }, }).lean(),
-        Business.find({ userId: { $in: supplierIds }, }).lean(),
-        Webpage.find({ userId: { $in: supplierIds }, }).lean(),
+        ProductMedia.find({
+            productId: { $in: productIds },
+        }).lean(),
+
+        Business.find({
+            userId: { $in: supplierIds },
+        }).lean(),
+
+        Webpage.find({
+            userId: { $in: supplierIds },
+        }).lean(),
     ]);
 
     return products.map((product) => {
-        const business = businesses.find((b) => b.userId.toString() === product.supplierId?._id?.toString());
-        const webpage = webpages.find((w) => w.userId.toString() === product.supplierId?._id?.toString());
+        const business = businesses.find(
+            (b) =>
+                b.userId.toString() ===
+                product.supplierId?._id?.toString()
+        );
+
+        const webpage = webpages.find(
+            (w) =>
+                w.userId.toString() ===
+                product.supplierId?._id?.toString()
+        );
 
         return {
-            ...product, supplier: { ...product.supplierId, business, webpage },
-            media: media.filter((m) => m.productId.toString() === product._id.toString()),
+            ...product,
+            supplier: {
+                ...product.supplierId,
+                business,
+                webpage,
+            },
+            media: media.filter(
+                (m) =>
+                    m.productId.toString() ===
+                    product._id.toString()
+            ),
         };
     });
 };

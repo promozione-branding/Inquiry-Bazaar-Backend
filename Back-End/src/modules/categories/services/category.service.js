@@ -68,6 +68,8 @@ export const getCategoryDetailsService = async (slug) => {
     category: {
       _id: category._id,
       name: category.name,
+      metaTitle: category.metaTitle,
+      metaDescription: category.metaDescription,
       slug: category.slug,
       imageUrl: category.imageUrl,
       categoryDescription: category.categoryDescription,
