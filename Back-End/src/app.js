@@ -13,6 +13,8 @@ import userWebpageRoutes from "./modules/users/routes/userWebpage.route.js";
 import authRoutes from "./modules/users/routes/userAuth.route.js";
 import buyerRoutes from "./modules/users/routes/buyer.route.js";
 import supplierRoutes from "./modules/users/routes/supplier.route.js";
+import employeeRoutes from "./modules/users/routes/employee.routes.js";
+import helpRoutes from "./modules/help/routes/help.routes.js";
 import supplierMembershipRoutes from "./modules/users/routes/supplierMembership.route.js";
 import connectDB from "./config/db.js";
 
@@ -53,7 +55,9 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/buyer", buyerRoutes);
 app.use("/api/supplier", supplierRoutes);
+app.use("/api/assign-employee", employeeRoutes);
 app.use("/api/supplier/membership", supplierMembershipRoutes);
+app.use("/api/help", helpRoutes);
 app.use("/api/industries", industryRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/search", searchRoutes);

@@ -23,9 +23,10 @@ import {
 
 import { BsTelegram } from "react-icons/bs";
 import { FaXTwitter } from "react-icons/fa6";
-import { BadgeCheck, Building, Calendar, Calendar1, Clock, CreditCard, FileText, IndianRupee, Mail, MapPin, PhoneCall, PhoneIcon, Plus, User, Users } from 'lucide-react';
+import { BadgeCheck, Building, Calendar, Calendar1, Clock, CreditCard, FileText, IndianRupee, Mail, MapPin, PhoneCall, PhoneIcon, Plus, User, User2, Users } from 'lucide-react';
 import PaymentSection from '../../../components/Sellers/PaymentSection';
 import ServiceSection from '../../../components/Sellers/ServiceSection';
+import EmployeeSection from '../../../components/Sellers/EmployeeSection';
 
 export default function SellerEdit() {
   const { id } = useParams();
@@ -53,6 +54,11 @@ export default function SellerEdit() {
       id: "service",
       label: "Service Locations",
       icon: <MapPin size={16} />
+    },
+    {
+      id: "asignEmployee",
+      label: "Asign Employee",
+      icon: <User2 size={16} />
     }
   ];
 
@@ -279,6 +285,10 @@ export default function SellerEdit() {
               {/* SERVICE LOCATION */}
               {activeTab === "service" && (
                 <ServiceSection supplierData={supplierData} fetchData={fetchData} />
+              )}
+
+               {activeTab === "asignEmployee" && (
+                <EmployeeSection supplierData={supplierData} fetchData={fetchData} />
               )}
             </div>
           </div>

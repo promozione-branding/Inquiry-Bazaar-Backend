@@ -30,6 +30,20 @@ const helpSchema = new mongoose.Schema(
             enum: ["OPEN", "IN PROGRESS", "RESOLVED"],
             default: "OPEN",
         },
+
+        adminReply: {
+            type: String,
+            default: "",
+        },
+
+        repliedAt: {
+            type: Date,
+        },
+
+        repliedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
     },
     { timestamps: true }
 );

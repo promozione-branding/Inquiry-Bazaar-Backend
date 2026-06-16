@@ -11,6 +11,7 @@ import Help from "../pages/Help/Help";
 import Settings from "../pages/Settings/Settings";
 import SellerEdit from "../pages/Sellers/Edit/SellerEdit";
 import SellerLeads from "../pages/Sellers/Leads/Leads";
+import Reply from "../pages/Help/Reply/Reply";
 
 export default function AllRoutes() {
     return (
@@ -27,6 +28,7 @@ export default function AllRoutes() {
                 <Route path="/all-buyers" element={<Buyers />} />
                 <Route path="/inquiry" element={<Inquiry />} />
                 <Route path="/help" element={<Help />} />
+                <Route path="/help-reply/:id" element={<Reply />} />
                 <Route path="/settings" element={<Settings />} />
             </Route>
         </Routes>

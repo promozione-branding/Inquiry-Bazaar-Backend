@@ -51,7 +51,7 @@ export default function Inquiry() {
                                         Inquiry
                                     </h2>
                                     <p className="text-sm text-gray-500">
-                                        Total Inquiry:
+                                        Total Inquiry: {leads.length}
                                     </p>
                                 </div>
 
