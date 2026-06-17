@@ -4,6 +4,12 @@ import ProductMedia from "../../products/models/productMedia.model.js";
 import User from "../../users/models/user.model.js";
 import Business from "../../users/models/userBusiness.model.js";
 import Webpage from "../../users/models/userWebpage.model.js";
+import { uploadToR2, deleteFromR2 } from "../../../utils/r2Service.js";
+import Industry from "../../industries/models/industry.model.js";
+
+const slugify = (text) => text.toLowerCase().trim().replace(/&/g, "and")
+  .replace(/[^a-z0-9]+/g, "-").replace(/--+/g, "-")
+  .replace(/^-+|-+$/g, "");
 
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -207,6 +213,94 @@ export const getSubCategoryLocationDetailsService = async (slug, location) => {
     totalProducts: finalProducts.length,
     products: finalProducts,
   };
+};
+
+export const createCategory = async ({ name, metaTitle, metaDescription, categoryDescription, industryId, parentCategoryId, faqs, file, }) => {
+  if (!name) throw new Error("Name required");
+  if (!industryId) throw new Error("Industry required");
+
+  const industry = await Industry.findById(industryId);
+  if (!industry) throw new Error("Invalid industry");
+
+  const slug = slugify(name);
+  const exists = await Category.findOne({ slug, });
+  if (exists) throw new Error("Category already exists");
+
+  let imageUrl = "";
+  let imageKey = "";
+
+  if (file) {
+    const uploaded = await uploadToR2({
+      file: file.buffer,
+      folder: "categories",
+      fileName: `${Date.now()}-${file.originalname}`,
+      contentType: file.mimetype,
+    });
+
+    imageUrl = uploaded.url;
+    imageKey = uploaded.key;
+  }
+
+  return await Category.create({
+    name,
+    slug,
+    metaTitle: metaTitle || name,
+    metaDescription: metaDescription || `Explore ${name}`,
+    categoryDescription,
+    industryId,
+    parentCategoryId: parentCategoryId || null,
+    imageUrl,
+    imageKey,
+    faqs: faqs ? JSON.parse(faqs) : [],
+  });
+
+};
+
+export const findCategoryById = async (id) => {
+  return await Category.findById(id);
+};
+
+export const updateCategory = async (id, data) => {
+  const category = await Category.findById(id);
+  if (!category) throw new Error("Category not found");
+
+  if (data.file) {
+    if (category.imageKey) {
+      await deleteFromR2(category.imageKey);
+    }
+
+    const uploaded = await uploadToR2({
+      file: data.file.buffer,
+      folder: "categories",
+      fileName: `${Date.now()}-${data.file.originalname}`,
+      contentType: data.file.mimetype,
+    });
+
+    category.imageUrl = uploaded.url;
+    category.imageKey = uploaded.key;
+  }
+
+  category.name = data.name;
+  category.industryId = data.industryId;
+  category.parentCategoryId = data.parentCategoryId || null;
+  category.metaTitle = data.metaTitle;
+  category.metaDescription = data.metaDescription;
+  category.categoryDescription = data.categoryDescription;
+  category.faqs = JSON.parse(data.faqs || "[]");
+
+  await category.save();
+  return category;
+};
+
+export const removeCategory = async (id) => {
+  const category = await Category.findById(id);
+  if (!category) throw new Error("Category not found");
+  if (category.imageKey) {
+    await deleteFromR2(category.imageKey);
+  }
+
+  await Category.findByIdAndDelete(id);
+  return true;
 };
 
 export const cityCoordinates = {

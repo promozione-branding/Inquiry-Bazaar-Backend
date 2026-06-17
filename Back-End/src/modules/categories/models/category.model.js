@@ -50,6 +50,20 @@ const categorySchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    faqs: [
+      {
+        question: {
+          type: String,
+          trim: true,
+        },
+
+        answer: {
+          type: String,
+          trim: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

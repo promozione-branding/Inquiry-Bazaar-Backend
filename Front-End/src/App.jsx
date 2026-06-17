@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser, clearUser, } from "./redux/slices/authSlice";
-
+import { Toaster } from "react-hot-toast";
 import api from "./utils/Api/api";
 import AllRoutes from "./routes/Routes";
 
@@ -24,6 +24,7 @@ function App() {
   return (
     <div className="flex min-h-screen flex-col overflow-hidden">
       <AllRoutes />
+      <Toaster position="top-center" />
     </div>
   );
 }

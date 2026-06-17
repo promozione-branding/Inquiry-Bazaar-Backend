@@ -1,19 +1,18 @@
 import { Plus, Edit, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
-export default function CategoryGrid({ industries = [] }) {
+export default function CategoryGrid({ industries = [], handleDelete, handleDeleteCat }) {
     return (
         <div className="space-y-8">
             {industries.map((industry) => (
-                <div key={industry._id}
-                    className="bg-white rounded-2xl shadow border border-gray-300 overflow-hidden"
-                >
+                <div key={industry._id} className="bg-white rounded-2xl shadow border border-gray-300 overflow-hidden">
                     {/* Industry Banner */}
-                    <div className="p-6 border-b border-gray-300">
+                    <div className="p-4 border-b border-gray-300">
                         <div className="flex flex-col md:flex-row items-center gap-5">
                             <img
                                 src={industry.imageUrl}
                                 alt={industry.name}
-                                className="w-28 h-28 rounded-xl object-cover border"
+                                className="w-28 h-28 rounded-xl object-cover border border-gray-300"
                             />
 
                             <div className="flex-1">
@@ -27,15 +26,15 @@ export default function CategoryGrid({ industries = [] }) {
                             </div>
 
                             <div className="flex gap-2">
-                                <button className="icon-btn-blue">
+                                {/* <Link to={"/add-category"} className="bg-blue-500 hover:bg-blue-600 rounded-md text-white p-2">
                                     <Plus size={18} />
-                                </button>
+                                </Link> */}
 
-                                <button className="icon-btn-red">
+                                <Link to={`/edit-industry/${industry._id}`} className="bg-green-500 hover:bg-green-600 rounded-md text-white p-2">
                                     <Edit size={18} />
-                                </button>
+                                </Link>
 
-                                <button className="icon-btn-danger">
+                                <button onClick={() => handleDelete(industry._id)} className="bg-red-500 hover:bg-red-600 rounded-md text-white p-2">
                                     <Trash2 size={18} />
                                 </button>
                             </div>
@@ -43,14 +42,10 @@ export default function CategoryGrid({ industries = [] }) {
                     </div>
 
                     {/* Categories */}
-                    <div className="p-6 grid lg:grid-cols-2 gap-6">
+                    <div className="p-4 grid lg:grid-cols-2 gap-5">
                         {industry.categories?.map((category) => (
-                            <div
-                                key={category._id}
-                                className="border border-gray-300 rounded-xl overflow-hidden"
-                            >
-                                {/* Category */}
-                                <div className="p-4 bg-gray-50 border-b border-gray-300">
+                            <div key={category._id} className="border border-gray-300 rounded-xl overflow-hidden">
+                                <div className="p-2 bg-gray-50 border-b border-gray-300">
                                     <div className="flex items-center gap-3">
                                         <img
                                             src={category.imageUrl}
@@ -65,36 +60,48 @@ export default function CategoryGrid({ industries = [] }) {
                                         </div>
 
                                         <div className="flex gap-1">
-                                            <button className="mini-btn-blue">
+                                            {/* <button className="bg-blue-500 hover:bg-blue-600 rounded-md text-white p-2">
                                                 <Plus size={14} />
-                                            </button>
+                                            </button> */}
 
-                                            <button className="mini-btn-blue">
+                                            <Link to={`/edit-category/${category._id}`} className="bg-green-500 hover:bg-green-600 rounded-md text-white p-2">
                                                 <Edit size={14} />
-                                            </button>
+                                            </Link>
 
-                                            <button className="mini-btn-danger">
+                                            <button onClick={() => handleDeleteCat(category._id)} className="bg-red-500 hover:bg-red-600 rounded-md text-white p-2">
                                                 <Trash2 size={14} />
                                             </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Sub Categories */}
-                                <div className="p-4">
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div className="p-2">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {category.subCategories?.map((sub) => (
                                             <div
                                                 key={sub._id}
-                                                className="border border-gray-300 rounded-lg p-2 text-center hover:shadow-md transition"
+                                                className="relative border border-gray-300 rounded-lg p-2 text-center hover:shadow-md transition group"
                                             >
+                                                {/* Hover Actions */}
+                                                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    <Link to={`/edit-category/${sub._id}`}
+                                                        className="bg-green-500 hover:bg-green-600 rounded-md text-white p-2"
+                                                    >
+                                                        <Edit size={14} />
+                                                    </Link>
+
+                                                    <button onClick={() => handleDeleteCat(sub._id)} className="bg-red-500 hover:bg-red-600 rounded-md text-white p-2">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+
                                                 <img
                                                     src={sub.imageUrl}
                                                     alt={sub.name}
-                                                    className="w-full h-20 object-cover rounded-md mb-2"
+                                                    className="w-full h-20 object-cover rounded-md"
                                                 />
 
-                                                <p className="text-sm font-medium">
+                                                <p className="text-sm font-medium p-2">
                                                     {sub.name}
                                                 </p>
                                             </div>

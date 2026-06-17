@@ -12,6 +12,10 @@ import Settings from "../pages/Settings/Settings";
 import SellerEdit from "../pages/Sellers/Edit/SellerEdit";
 import SellerLeads from "../pages/Sellers/Leads/Leads";
 import Reply from "../pages/Help/Reply/Reply";
+import AddCategory from "../components/Category/Add/Category";
+import AddIndustry from "../components/Category/Add/Industry";
+import EditIndustry from "../components/Category/Edit/Industry";
+import EditCategory from "../components/Category/Edit/Category";
 
 export default function AllRoutes() {
     return (
@@ -20,15 +24,29 @@ export default function AllRoutes() {
 
             <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/add-category" element={<Category />} />
-                <Route path="/all-sellers" element={<Sellers />} />
+
+                {/* Category */}
+                <Route path="/all-category" element={<Category />} />
+                <Route path="/add-industry" element={<AddIndustry />} />
+                <Route path="/edit-industry/:id" element={<EditIndustry />} />
+                <Route path="/add-category" element={<AddCategory />} />
+                <Route path="/edit-category/:id" element={<EditCategory />} />
+
+                {/* Seller */}
                 <Route path="/all-sellers" element={<Sellers />} />
                 <Route path="/edit-seller/:id" element={<SellerEdit />} />
                 <Route path="/seller-leads/:id" element={<SellerLeads />} />
+
+                {/* Buyer */}
                 <Route path="/all-buyers" element={<Buyers />} />
+
+                {/* Inquiry */}
                 <Route path="/inquiry" element={<Inquiry />} />
+
+                {/* Help */}
                 <Route path="/help" element={<Help />} />
                 <Route path="/help-reply/:id" element={<Reply />} />
+
                 <Route path="/settings" element={<Settings />} />
             </Route>
         </Routes>

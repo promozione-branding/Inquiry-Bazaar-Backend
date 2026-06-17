@@ -1,4 +1,4 @@
-import { getAllCategoriesService, getMainCategoriesService, getCategoryDetailsService, getSubCategoryDetailsService, getSubCategoryLocationDetailsService } from "../services/category.service.js";
+import { getAllCategoriesService, getMainCategoriesService, getCategoryDetailsService, getSubCategoryDetailsService, getSubCategoryLocationDetailsService, createCategory, findCategoryById, updateCategory, removeCategory } from "../services/category.service.js";
 
 export const getAllCategories = async (req, res) => {
   try {
@@ -98,6 +98,63 @@ export const getSubCategoryLocationDetails = async (req, res) => {
     console.log(error);
 
     return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const addCategory = async (req, res) => {
+  try {
+    const category = await createCategory({ ...req.body, file: req.file, });
+
+    return res.status(201).json({ success: true, data: category, });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message, });
+  }
+};
+
+export const getCategoryById = async (req, res) => {
+  try {
+    const category = await findCategoryById(req.params.id);
+    res.json({ success: true, data: category, });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const editCategory = async (req, res) => {
+  try {
+    const category = await updateCategory(
+      req.params.id,
+      { ...req.body, file: req.file, }
+    );
+
+    res.json({
+      success: true,
+      data: category,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const deleteCategory = async (req, res) => {
+  try {
+    await removeCategory(req.params.id);
+
+    res.json({
+      success: true,
+      message: "Deleted",
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
       message: error.message,
     });

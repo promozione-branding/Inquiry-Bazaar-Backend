@@ -25,20 +25,19 @@ app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "https://inquirybazaar.com",
-      "https://www.inquirybazaar.com",
-      "https://backend.inquirybazaar.com",
-      "https://dir.inquirybazaar.com",
-      "https://buyer.inquirybazaar.com",
-      "https://www.buyer.inquirybazaar.com"
-    ],
-    credentials: true,
-  })
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://inquirybazaar.com",
+    "https://www.inquirybazaar.com",
+    "https://backend.inquirybazaar.com",
+    "https://dir.inquirybazaar.com",
+    "https://buyer.inquirybazaar.com",
+    "https://www.buyer.inquirybazaar.com"
+  ],
+  credentials: true,
+})
 );
 
 app.use(express.json({ limit: "10mb" }));
