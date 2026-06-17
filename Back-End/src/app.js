@@ -34,6 +34,8 @@ app.use(
       "https://www.inquirybazaar.com",
       "https://backend.inquirybazaar.com",
       "https://dir.inquirybazaar.com",
+      "https://buyer.inquirybazaar.com",
+      "https://www.buyer.inquirybazaar.com"
     ],
     credentials: true,
   })
