@@ -3,7 +3,7 @@ import Category from "../../categories/models/category.model.js";
 
 export const getAllIndustriesService = async () => {
   const industries = await Industry.find()
-    .sort({ createdAt: -1 }).lean();
+    .sort({ name: 1 }).lean();
 
   return industries;
 };
