@@ -1,7 +1,63 @@
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function CategoryGrid({ industries = [], handleDelete, handleDeleteCat }) {
+export default function CategoryGrid({ industries = [], handleDelete, handleDeleteCat, loading }) {
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                {[...Array(3)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="bg-white rounded-2xl border border-gray-300 p-5 animate-pulse"
+                    >
+                        <div className="flex gap-4">
+                            <div className="w-28 h-28 bg-gray-200 rounded-xl" />
+
+                            <div className="flex-1 space-y-3">
+                                <div className="h-6 w-48 bg-gray-200 rounded" />
+                                <div className="h-4 w-28 bg-gray-200 rounded" />
+                            </div>
+
+                            <div className="flex gap-2">
+                                <div className="w-10 h-10 bg-gray-200 rounded-md" />
+                                <div className="w-10 h-10 bg-gray-200 rounded-md" />
+                            </div>
+                        </div>
+
+                        <div className="grid lg:grid-cols-2 gap-4 mt-6">
+                            {[...Array(2)].map((_, j) => (
+                                <div
+                                    key={j}
+                                    className="border border-gray-300 rounded-xl p-4 space-y-3"
+                                >
+                                    <div className="h-5 w-32 bg-gray-200 rounded" />
+
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[...Array(6)].map((_, k) => (
+                                            <div
+                                                key={k}
+                                                className="h-28 bg-gray-200 rounded-lg"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    if (!industries.length) {
+        return (
+            <div className="bg-white rounded-xl py-20 text-center">
+                <p className="text-gray-500 text-lg">
+                    No categories found
+                </p>
+            </div>
+        );
+    }
     return (
         <div className="space-y-8">
             {industries.map((industry) => (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux';
 import SideBar from '../../components/SideBar';
 import Header from '../../components/Header';
@@ -13,6 +13,7 @@ export default function Category() {
   const [openSideBar, setOpenSideBar] = useState(false);
   const [industries, setIndustries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   const fetchData = async () => {
     // setLoading(true);
@@ -61,7 +62,44 @@ export default function Category() {
     }
   };
 
-  // console.log(industries)
+  // Search Industry → Category → SubCategory
+  const filteredIndustries = useMemo(() => {
+    if (!search.trim()) return industries;
+    const keyword = search.toLowerCase();
+
+    return industries.map((industry) => {
+      const industryMatch = industry.name?.toLowerCase().includes(keyword);
+
+      const categories = industry.categories?.map((cat) => {
+        const categoryMatch = cat.name?.toLowerCase().includes(keyword);
+
+        const subCategories = cat.subCategories?.filter((sub) =>
+          sub.name?.toLowerCase().includes(keyword)) || [];
+
+        if (categoryMatch || subCategories.length > 0 || industryMatch) {
+          return {
+            ...cat,
+            subCategories: industryMatch || categoryMatch ? cat.subCategories : subCategories,
+          };
+        }
+
+        return null;
+      }).filter(Boolean) || [];
+
+      if (industryMatch || categories.length > 0) {
+        return {
+          ...industry,
+          categories: industryMatch
+            ? industry.categories
+            : categories,
+        };
+      }
+
+      return null;
+    }).filter(Boolean);
+  }, [industries, search]);
+
+  console.log(filteredIndustries, search)
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -83,17 +121,19 @@ export default function Category() {
             <div className="relative">
               <input
                 type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
               />
             </div>
           </div>
 
-          <CategoryGrid industries={industries} handleDelete={handleDelete} handleDeleteCat={handleDeleteCat} />
+          <CategoryGrid loading={loading} industries={filteredIndustries} handleDelete={handleDelete} handleDeleteCat={handleDeleteCat} />
         </main>
       </div>
     </div>
