@@ -38,6 +38,30 @@ const webpageSchema = new mongoose.Schema({
         subHeading: String,
     },
 
+    // NEW: Featured Products
+    featuredProducts: {
+        heading: String,
+        subHeading: String,
+        products: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product",
+            }
+        ],
+    },
+
+    // NEW: Popular Products
+    popularProducts: {
+        heading: String,
+        subHeading: String,
+        products: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Product",
+            }
+        ],
+    },
+
     faqSection: {
         image: String,
         faqs: [
