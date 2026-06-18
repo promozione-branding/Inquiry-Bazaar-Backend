@@ -36,25 +36,31 @@ export const getWebpageBySlugService = async (slug) => {
     }, {});
 
     // Attach media to featured products
-    webpage.featuredProducts.products = webpage.featuredProducts.products.map(product => ({
-        ...product,
-        media: mediaMap[product._id.toString()] || [],
-    }));
+    if (webpage.featuredProducts) {
+        webpage.featuredProducts.products =
+            (webpage.featuredProducts.products || []).map(product => ({
+                ...product,
+                media: mediaMap[product._id.toString()] || [],
+            }));
+    }
 
     // Attach media to popular products
-    webpage.popularProducts.products = webpage.popularProducts.products.map(product => ({
-        ...product,
-        media: mediaMap[product._id.toString()] || [],
-    }));
+    if (webpage.popularProducts) {
+        webpage.popularProducts.products =
+            (webpage.popularProducts.products || []).map(product => ({
+                ...product,
+                media: mediaMap[product._id.toString()] || [],
+            }));
+    }
 
 
     // OLD LOGIC (unchanged)
-    const products = await Product.find({ supplierId: webpage.userId._id, })
+    const products = await Product.find({ supplierId: webpage?.userId?._id, })
         .sort({ createdAt: -1 }).limit(8).lean()
         .populate("categoryId", "name slug").populate("subCategoryId", "name slug");
 
     const productsWithMedia = await Promise.all(products.map(async (product) => {
-        const media = await ProductMedia.find({ productId: product._id, })
+        const media = await ProductMedia.find({ productId: product?._id, })
             .sort({ isPrimary: -1 }).lean();
 
         return {
@@ -66,7 +72,7 @@ export const getWebpageBySlugService = async (slug) => {
     return {
         ...webpage,
         user: {
-            ...webpage.userId, business,
+            ...webpage?.userId, business,
         },
         products: productsWithMedia,
     };
