@@ -208,6 +208,7 @@ export const getSubCategoryLocationDetailsService = async (slug, location) => {
       categoryDescription: category.categoryDescription,
       industry: category.industryId,
       parentCategory: category.parentCategoryId,
+      faqs: category.faqs || null
     },
     location,
     totalProducts: finalProducts.length,

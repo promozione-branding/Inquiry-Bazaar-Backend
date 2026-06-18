@@ -11,6 +11,7 @@ import searchRoutes from "./modules/search/routes/search.route.js";
 import productRoutes from "./modules/products/routes/product.route.js";
 import userWebpageRoutes from "./modules/users/routes/userWebpage.route.js";
 import authRoutes from "./modules/users/routes/userAuth.route.js";
+import dirRoutes from "./modules/users/routes/dirUser.route.js";
 import buyerRoutes from "./modules/users/routes/buyer.route.js";
 import supplierRoutes from "./modules/users/routes/supplier.route.js";
 import employeeRoutes from "./modules/users/routes/employee.routes.js";
@@ -54,6 +55,7 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/dir", dirRoutes);
 app.use("/api/buyer", buyerRoutes);
 app.use("/api/supplier", supplierRoutes);
 app.use("/api/assign-employee", employeeRoutes);
