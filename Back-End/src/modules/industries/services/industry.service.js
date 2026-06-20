@@ -142,7 +142,7 @@ export const getIndustryTreeService = async () => {
   return industries;
 };
 
-export const createIndustry = async ({ name, metaTitle, metaDescription, file, }) => {
+export const createIndustry = async ({ name, metaTitle, metaDescription, file, imageAlt }) => {
   const slug = slugify(name, { lower: true, strict: true, });
   const exists = await Industry.findOne({ slug, });
 
@@ -173,6 +173,7 @@ export const createIndustry = async ({ name, metaTitle, metaDescription, file, }
     metaDescription: metaDescription || `Explore ${name}`,
     imageUrl,
     imageKey,
+    imageAlt,
   });
 };
 
@@ -180,7 +181,7 @@ export const getIndustryById = async (id) => {
   return await Industry.findById(id);
 };
 
-export const updateIndustry = async (id, { name, metaTitle, metaDescription, file, }) => {
+export const updateIndustry = async (id, { name, metaTitle, metaDescription, file, imageAlt }) => {
   const industry = await Industry.findById(id);
 
   if (!industry) {
@@ -211,6 +212,7 @@ export const updateIndustry = async (id, { name, metaTitle, metaDescription, fil
   industry.metaDescription = metaDescription || industry.metaDescription;
   industry.imageUrl = imageUrl;
   industry.imageKey = imageKey;
+  industry.imageAlt = imageAlt || industry.imageAlt;;
 
   await industry.save();
   return industry;

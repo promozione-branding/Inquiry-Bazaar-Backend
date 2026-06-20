@@ -19,6 +19,10 @@ const productMediaSchema = new mongoose.Schema(
       required: true,
     },
 
+    altName: {
+      type: String,
+    },
+
     isPrimary: {
       type: Boolean,
       default: false,

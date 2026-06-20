@@ -51,6 +51,10 @@ const categorySchema = new mongoose.Schema(
       default: "",
     },
 
+    imageAlt: {
+      type: String,
+    },
+
     faqs: [
       {
         question: {

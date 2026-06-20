@@ -66,7 +66,7 @@ export const getIndustryTree = async (req, res) => {
 
 export const addIndustry = async (req, res) => {
     try {
-        const { name, metaTitle, metaDescription, } = req.body;
+        const { name, metaTitle, metaDescription,imageAlt } = req.body;
 
         if (!name) {
             return res.status(400).json({ message: "Name is required", });
@@ -76,6 +76,7 @@ export const addIndustry = async (req, res) => {
             name,
             metaTitle,
             metaDescription,
+            imageAlt,
             file: req.file,
         });
 

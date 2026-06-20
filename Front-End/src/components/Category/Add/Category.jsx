@@ -21,6 +21,7 @@ export default function AddCategory() {
     name: "",
     industryId: "",
     parentCategoryId: "",
+    imageAlt: "",
     metaTitle: "",
     metaDescription: "",
     categoryDescription: "",
@@ -89,6 +90,7 @@ export default function AddCategory() {
       payload.append("name", formData.name);
       payload.append("industryId", formData.industryId);
       payload.append("parentCategoryId", formData.parentCategoryId);
+      payload.append("imageAlt", formData.imageAlt);
       payload.append("metaTitle", formData.metaTitle);
       payload.append("metaDescription", formData.metaDescription);
       payload.append("categoryDescription", formData.categoryDescription);
@@ -197,6 +199,21 @@ export default function AddCategory() {
                     }}
                   />
                 </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Image Alt Text
+                </label>
+
+                <input
+                  type="text"
+                  name="imageAlt"
+                  value={formData.imageAlt}
+                  onChange={handleChange}
+                  placeholder="Image Alt"
+                  className="w-full border border-gray-300 shadow-sm rounded-lg p-3 focus:outline-none focus:ring-0 focus:border-blue-500"
+                />
               </div>
 
               <div>

@@ -16,6 +16,7 @@ import AddCategory from "../components/Category/Add/Category";
 import AddIndustry from "../components/Category/Add/Industry";
 import EditIndustry from "../components/Category/Edit/Industry";
 import EditCategory from "../components/Category/Edit/Category";
+import SellerImages from "../pages/Sellers/Images/Images";
 
 export default function AllRoutes() {
     return (
@@ -36,6 +37,7 @@ export default function AllRoutes() {
                 <Route path="/all-sellers" element={<Sellers />} />
                 <Route path="/edit-seller/:id" element={<SellerEdit />} />
                 <Route path="/seller-leads/:id" element={<SellerLeads />} />
+                <Route path="/seller-image/:id" element={<SellerImages />} />
 
                 {/* Buyer */}
                 <Route path="/all-buyers" element={<Buyers />} />

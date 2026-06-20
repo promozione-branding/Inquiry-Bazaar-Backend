@@ -77,3 +77,25 @@ export const getWebpageBySlugService = async (slug) => {
         products: productsWithMedia,
     };
 };
+
+export const getWebpageByUserIdService = async (id) => {
+    const webpage = await Webpage.findOne({ userId: id })
+
+    return {
+        webpage,
+    };
+};
+
+export const updateWebpageImageAltService = async (webpageId, section, imageAlt) => {
+    const allowed = ["hero", "about", "faqSection",];
+
+    if (!allowed.includes(section)) {
+        throw new Error("Invalid section");
+    }
+
+    return Webpage.findByIdAndUpdate(
+        webpageId,
+        { $set: { [`${section}.imageAlt`]: imageAlt, }, },
+        { new: true, }
+    );
+};

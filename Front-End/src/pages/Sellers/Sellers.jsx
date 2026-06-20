@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import SideBar from '../../components/SideBar';
 import Header from '../../components/Header';
 import axios from 'axios';
-import { Edit, Eye, Filter, Headset, Search, Trash2 } from 'lucide-react';
+import { Edit, Eye, Filter, Headset, Images, Package, Search, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Sellers() {
@@ -11,10 +11,11 @@ export default function Sellers() {
     const [openSideBar, setOpenSideBar] = useState(false);
     const [allSuppliers, setAllSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
-            // setLoading(true);
+            setLoading(true);
             try {
                 const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/supplier/all`, { withCredentials: true, });
                 setAllSuppliers(res.data.data || []);
@@ -29,10 +30,24 @@ export default function Sellers() {
     }, []);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
-    const totalPages = Math.ceil(allSuppliers.length / itemsPerPage);
+    const itemsPerPage = 20;
 
-    const paginatedSuppliers = allSuppliers.slice(
+    // Search filter
+    const filteredSuppliers = allSuppliers.filter((supplier) => {
+        const search = searchTerm.toLowerCase();
+
+        return (
+            supplier?.name?.toLowerCase().includes(search) ||
+            supplier?.business?.companyName?.toLowerCase().includes(search) ||
+            supplier?.phone?.toLowerCase().includes(search) ||
+            supplier?.email?.toLowerCase().includes(search)
+        );
+    });
+
+    // Pagination after filtering
+    const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+
+    const paginatedSuppliers = filteredSuppliers.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -55,7 +70,7 @@ export default function Sellers() {
                                         Suppliers
                                     </h2>
                                     <p className="text-sm text-gray-500">
-                                        Total Suppliers: {allSuppliers.length}
+                                        Total Suppliers: {loading ? "Loading..." : filteredSuppliers.length}
                                     </p>
                                 </div>
 
@@ -64,6 +79,11 @@ export default function Sellers() {
                                         <input
                                             type="text"
                                             placeholder="Search supplier..."
+                                            value={searchTerm}
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setCurrentPage(1); // reset to first page
+                                            }}
                                             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         <Search
@@ -113,119 +133,132 @@ export default function Sellers() {
                                 </thead>
 
                                 <tbody>
-                                    {paginatedSuppliers.map((i, index) => (
-                                        <tr key={i._id} className={`border-t border-gray-100 hover:bg-blue-50/40 transition ${index % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}>
-                                            <td className="px-4 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    {i.profileImage ? (
-                                                        <img
-                                                            src={i.profileImage}
-                                                            alt={i.name}
-                                                            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-12 h-12 rounded-full text-lg bg-linear-to-r from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold">
-                                                            {(i.business?.companyName?.charAt(0) || i.name?.charAt(0) || "?").toUpperCase()}
+                                    {loading ? (
+                                        [...Array(8)].map((_, index) => (
+                                            <tr key={index} className="border-t border-gray-200">
+                                                {[...Array(6)].map((_, i) => (
+                                                    <td key={i} className="px-4 py-5">
+                                                        <div className="h-5 bg-gray-200 rounded animate-pulse"></div>
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))
+                                    ) : paginatedSuppliers.length > 0 ? (
+                                        paginatedSuppliers.map((i, index) => (
+                                            <tr key={i._id} className={`border-t border-gray-100 hover:bg-blue-50/40 transition ${index % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}>
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        {i.profileImage ? (
+                                                            <img
+                                                                src={i.profileImage}
+                                                                alt={i.name}
+                                                                className="w-12 h-12 rounded-full object-cover border-2 border-white shadow"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-12 h-12 rounded-full text-lg bg-linear-to-r from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold">
+                                                                {(i.business?.companyName?.charAt(0) || i.name?.charAt(0) || "?").toUpperCase()}
+                                                            </div>
+                                                        )}
+
+                                                        <div>
+                                                            <h4 className="font-semibold text-gray-800">
+                                                                {i.name}
+                                                            </h4>
+
+                                                            <p className="text-sm text-gray-500">
+                                                                {i.business?.businessType ||
+                                                                    "Supplier"}
+                                                            </p>
                                                         </div>
-                                                    )}
-
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4">
                                                     <div>
-                                                        <h4 className="font-semibold text-gray-800">
-                                                            {i.name}
-                                                        </h4>
+                                                        <p className="font-medium">
+                                                            {i.business?.companyName || "-"}
+                                                        </p>
 
-                                                        <p className="text-sm text-gray-500">
-                                                            {i.business?.businessType ||
-                                                                "Supplier"}
+                                                        <p className="text-xs text-gray-500">
+                                                            {i.business?.businessField}
                                                         </p>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <div>
-                                                    <p className="font-medium">
-                                                        {i.business?.companyName || "-"}
-                                                    </p>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {i.phone}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <span className="text-gray-600">
+                                                        {i.email}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                                        Active
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <div className="flex justify-center gap-2">
+                                                        <Link to={`/seller-image/${i?._id}`} className="w-9 h-9 flex items-center justify-center rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition"
+                                                            title="Supplier All Images"
+                                                        >
+                                                            <Images size={18} />
+                                                        </Link>
 
-                                                    <p className="text-xs text-gray-500">
-                                                        {i.business?.businessField}
-                                                    </p>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                {i.phone}
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <span className="text-gray-600">
-                                                    {i.email}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                                    Active
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <div className="flex justify-center gap-2">
-                                                    <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-500 hover:text-white transition"
-                                                        title="View Profile"
-                                                    >
-                                                        <Eye size={18} />
-                                                    </button>
+                                                        <Link to={`/seller-leads/${i?._id}`} className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-100 text-green-600 hover:bg-green-500 hover:text-white transition"
+                                                            title="Supplier Lead"
+                                                        >
+                                                            <Headset size={18} />
+                                                        </Link>
 
-                                                    <Link to={`/seller-leads/${i?._id}`} className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-100 text-green-600 hover:bg-green-500 hover:text-white transition"
-                                                        title="Supplier Lead"
-                                                    >
-                                                        <Headset size={18} />
-                                                    </Link>
-
-                                                    <Link to={`/edit-seller/${i?._id}`} className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-500 hover:text-white transition"
-                                                        title="Edit Supplier"
-                                                    >
-                                                        <Edit size={18} />
-                                                    </Link>
-                                                </div>
+                                                        <Link to={`/edit-seller/${i?._id}`} className="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-500 hover:text-white transition"
+                                                            title="Edit Supplier"
+                                                        >
+                                                            <Edit size={18} />
+                                                        </Link>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))) : (
+                                        <tr>
+                                            <td colSpan="6" className="text-center py-10 text-gray-500">
+                                                No suppliers found
                                             </td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-gray-200 bg-white">
-
                             <p className="text-sm text-gray-500">
                                 Showing{" "}
                                 <span className="font-medium">
-                                    {(currentPage - 1) * itemsPerPage + 1}
+                                    {filteredSuppliers.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
                                 </span>
+
                                 {" "}to{" "}
+
                                 <span className="font-medium">
-                                    {Math.min(
-                                        currentPage * itemsPerPage,
-                                        allSuppliers.length
-                                    )}
+                                    {Math.min(currentPage * itemsPerPage, filteredSuppliers.length)}
                                 </span>
+
                                 {" "}of{" "}
+
                                 <span className="font-medium">
-                                    {allSuppliers.length}
+                                    {filteredSuppliers.length}
                                 </span>
+
                                 {" "}suppliers
                             </p>
 
                             <div className="flex items-center gap-2">
-
-                                <button
-                                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                                    disabled={currentPage === 1}
+                                <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={loading || currentPage === 1}
                                     className="px-3 py-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                                 >
                                     Previous
                                 </button>
 
                                 {[...Array(totalPages)].map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setCurrentPage(index + 1)}
+                                    <button key={index} onClick={() => setCurrentPage(index + 1)}
                                         className={`w-10 h-10 rounded-lg font-medium transition ${currentPage === index + 1
                                             ? "bg-blue-600 text-white"
                                             : "border border-gray-300 hover:bg-gray-100"
@@ -235,16 +268,11 @@ export default function Sellers() {
                                     </button>
                                 ))}
 
-                                <button
-                                    onClick={() =>
-                                        setCurrentPage((p) => Math.min(p + 1, totalPages))
-                                    }
-                                    disabled={currentPage === totalPages}
+                                <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={loading || currentPage === totalPages}
                                     className="px-3 py-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                                 >
                                     Next
                                 </button>
-
                             </div>
                         </div>
                     </div>

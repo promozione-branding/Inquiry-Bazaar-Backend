@@ -1,4 +1,4 @@
-import { getAllProductService, getProductBySlugService } from "../services/product.service.js";
+import { getAllProductService, getProductBySlugService, getSupplierProductsService } from "../services/product.service.js";
 
 export const getProductBySlug = async (req, res) => {
     try {
@@ -43,6 +43,22 @@ export const getAllProducts = async (req, res) => {
     } catch (error) {
         console.log(error);
 
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export const getSupplierProducts = async (req, res) => {
+    try {
+        const data = await getSupplierProductsService(req.params.supplierId);
+
+        return res.status(200).json({
+            success: true,
+            data,
+        });
+    } catch (error) {
         return res.status(500).json({
             success: false,
             message: error.message,

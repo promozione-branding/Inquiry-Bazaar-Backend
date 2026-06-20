@@ -40,6 +40,10 @@ const industrySchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+
+        imageAlt: {
+            type: String,
+        },
     },
     { timestamps: true }
 );

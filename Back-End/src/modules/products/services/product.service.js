@@ -51,5 +51,20 @@ export const getAllProductService = async () => {
 
   return {
     products,
+    total: products.length
+  };
+};
+
+export const getSupplierProductsService = async (supplierId) => {
+  const products = await Product.find({ supplierId, })
+    .sort({ createdAt: -1, }).lean();
+
+  const data = await Promise.all(products.map(async (item) => {
+    const media = await ProductMedia.find({ productId: item._id, });
+    return { ...item, media, };
+  }));
+
+  return {
+    products: data,
   };
 };

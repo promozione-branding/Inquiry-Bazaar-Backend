@@ -19,6 +19,7 @@ export default function EditIndustry() {
         metaTitle: "",
         metaDescription: "",
         image: null,
+        imageAlt: "",
     });
 
     const [preview, setPreview] = useState("");
@@ -32,6 +33,7 @@ export default function EditIndustry() {
             setFormData({
                 name: res.data.name,
                 metaTitle: res.data.metaTitle,
+                imageAlt: res.data.imageAlt,
                 metaDescription: res.data.metaDescription,
                 image: null,
             });
@@ -66,6 +68,7 @@ export default function EditIndustry() {
             setLoading(true);
             const payload = new FormData();
             payload.append("name", formData.name);
+            payload.append("imageAlt", formData.imageAlt);
             payload.append("metaTitle", formData.metaTitle);
             payload.append("metaDescription", formData.metaDescription);
 
@@ -146,6 +149,21 @@ export default function EditIndustry() {
                                         onChange={handleImage}
                                     />
                                 </label>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">
+                                    Image Alt Text
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="imageAlt"
+                                    value={formData.imageAlt}
+                                    onChange={handleChange}
+                                    placeholder="Image Alt"
+                                    className="w-full border border-gray-300 shadow-sm rounded-lg p-3 focus:outline-none focus:ring-0 focus:border-blue-500"
+                                />
                             </div>
 
                             <div>

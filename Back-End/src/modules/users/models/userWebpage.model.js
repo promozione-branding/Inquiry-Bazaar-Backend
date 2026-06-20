@@ -17,6 +17,7 @@ const webpageSchema = new mongoose.Schema({
         heading: String,
         subHeading: String,
         image: String,
+        imageAlt: String,
     },
 
     about: {
@@ -24,6 +25,7 @@ const webpageSchema = new mongoose.Schema({
         subHeading: String,
         description: String,
         image: String,
+        imageAlt: String,
     },
 
     work: {
@@ -64,6 +66,7 @@ const webpageSchema = new mongoose.Schema({
 
     faqSection: {
         image: String,
+        imageAlt: String,
         faqs: [
             {
                 question: String,

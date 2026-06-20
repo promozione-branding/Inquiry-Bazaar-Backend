@@ -216,7 +216,7 @@ export const getSubCategoryLocationDetailsService = async (slug, location) => {
   };
 };
 
-export const createCategory = async ({ name, metaTitle, metaDescription, categoryDescription, industryId, parentCategoryId, faqs, file, }) => {
+export const createCategory = async ({ name, metaTitle, metaDescription, imageAlt, categoryDescription, industryId, parentCategoryId, faqs, file, }) => {
   if (!name) throw new Error("Name required");
   if (!industryId) throw new Error("Industry required");
 
@@ -252,6 +252,7 @@ export const createCategory = async ({ name, metaTitle, metaDescription, categor
     parentCategoryId: parentCategoryId || null,
     imageUrl,
     imageKey,
+    imageAlt,
     faqs: faqs ? JSON.parse(faqs) : [],
   });
 
@@ -285,6 +286,7 @@ export const updateCategory = async (id, data) => {
   category.industryId = data.industryId;
   category.parentCategoryId = data.parentCategoryId || null;
   category.metaTitle = data.metaTitle;
+  category.imageAlt = data.imageAlt;
   category.metaDescription = data.metaDescription;
   category.categoryDescription = data.categoryDescription;
   category.faqs = JSON.parse(data.faqs || "[]");
