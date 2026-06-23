@@ -6,6 +6,7 @@ import Business from "../../users/models/userBusiness.model.js";
 import Webpage from "../../users/models/userWebpage.model.js";
 import { uploadToR2, deleteFromR2 } from "../../../utils/r2Service.js";
 import Industry from "../../industries/models/industry.model.js";
+import mongoose from "mongoose";
 
 const slugify = (text) => text.toLowerCase().trim().replace(/&/g, "and")
   .replace(/[^a-z0-9]+/g, "-").replace(/--+/g, "-")
@@ -46,26 +47,51 @@ export const getCategoryDetailsService = async (slug) => {
     .lean();
 
   if (!category) return null;
-
   const subCategories = await Category.find({ parentCategoryId: category._id, })
     .select("name slug imageUrl").sort({ name: 1 }).lean();
 
   const subCategoriesWithProducts = await Promise.all(
     subCategories.map(async (subCat) => {
-      const products = await Product.find({ subCategoryId: subCat._id, })
-        .select("name slug price").limit(8).lean();
+      const products = await Product.aggregate([
+        { $match: { subCategoryId: subCat._id, }, },
+        { $sample: { size: 300, }, },
+        { $group: { _id: "$supplierId", product: { $first: "$$ROOT", }, }, },
+        { $replaceRoot: { newRoot: "$product", }, },
+        { $limit: 6, },
+        {
+          $project: {
+            name: 1,
+            slug: 1,
+            price: 1,
+            supplierId: 1,
+          },
+        },
+      ]);
 
-      const productsWithMedia = await Promise.all(
-        products.map(async (product) => {
-          const media = await ProductMedia.find({ productId: product._id, })
-            .select("url type isPrimary").lean();
+      if (!products.length) {
+        return { ...subCat, products: [], };
+      }
 
-          return { ...product, media, };
-        }));
+      const productIds = products.map((p) => p._id);
+      const media = await ProductMedia.find({ productId: { $in: productIds, }, })
+        .select("productId url type isPrimary").lean();
+
+      const mediaMap = {};
+
+      media.forEach((m) => {
+        if (!mediaMap[m.productId]) {
+          mediaMap[m.productId] = [];
+        }
+
+        mediaMap[m.productId].push(m);
+      });
 
       return {
         ...subCat,
-        products: productsWithMedia,
+        products: products.map((p) => ({
+          ...p,
+          media: mediaMap[p._id] || [],
+        })),
       };
     })
   );
@@ -137,66 +163,64 @@ export const getSubCategoryLocationDetailsService = async (slug, location) => {
     .populate("industryId", "name slug")
     .populate("parentCategoryId", "name slug").lean();
 
-  if (!category) { return null; }
-  const selectedCity = cityCoordinates[location];
+  if (!category) return null;
+  let supplierIds = [];
 
-  if (!selectedCity) {
-    throw new Error("Invalid city");
+  if (location === "All India" || location === "India") {
+    supplierIds = await Business.find({}).distinct("userId");
+  } else {
+    const selectedCity = cityCoordinates[location];
+    if (!selectedCity) {
+      throw new Error("Invalid city");
+    }
+
+    const nearbyCities = Object.keys(cityCoordinates).filter((city) => {
+      const distance = getDistance(
+        selectedCity.lat,
+        selectedCity.lng,
+        cityCoordinates[city].lat,
+        cityCoordinates[city].lng
+      );
+      return distance <= 200;
+    });
+    supplierIds = await Business.find({ serviceLocations: { $in: nearbyCities, }, }).distinct("userId");
   }
-
-  const nearbyCities = Object.keys(cityCoordinates).filter((city) => {
-    const distance = getDistance(
-      selectedCity.lat,
-      selectedCity.lng,
-      cityCoordinates[city].lat,
-      cityCoordinates[city].lng
-    );
-
-    return distance <= 200;
-  });
-
-  const supplierIds = await Business.find({ serviceLocations: { $in: nearbyCities, }, }).distinct("userId");
-
-  // const supplierIds = await Business.find({ serviceLocations: { $in: [location], }, }).distinct("userId");
 
   const products = await Promise.all(
     supplierIds.map(async (supplierId) => {
       const supplierProducts = await Product.aggregate([
         {
           $match: {
-            supplierId,
+            supplierId: new mongoose.Types.ObjectId(supplierId),
+
             $or: [
-              { subCategoryId: category._id },
-              { categoryId: category._id },
+              { subCategoryId: category._id, },
+              { categoryId: category._id, },
             ],
           },
         },
         {
-          $sample: { size: 1 }, // random product
+          $sample: { size: 1, },
         },
       ]);
 
-      return supplierProducts[0] || null;
-    })
-  );
+      return (supplierProducts[0] || null);
+    }));
 
   const filteredProducts = products.filter(Boolean);
-
   const finalProducts = await Promise.all(
     filteredProducts.map(async (product) => {
       const [media, supplier, business, webpage,] = await Promise.all([
         ProductMedia.find({ productId: product._id, }).lean(),
         User.findById(product.supplierId).select("name email phone profileImage").lean(),
         Business.findOne({ userId: product.supplierId, }).lean(),
-        Webpage.findOne({ userId: product.supplierId, }).lean(),
-      ]);
-
+        Webpage.findOne({ userId: product.supplierId, }).lean(),]);
       return {
-        ...product,
-        media,
+        ...product, media,
         supplier: supplier ? { ...supplier, business, webpage, } : null,
       };
-    })
+    }
+    )
   );
 
   return {
@@ -208,7 +232,7 @@ export const getSubCategoryLocationDetailsService = async (slug, location) => {
       categoryDescription: category.categoryDescription,
       industry: category.industryId,
       parentCategory: category.parentCategoryId,
-      faqs: category.faqs || null
+      faqs: category.faqs || null,
     },
     location,
     totalProducts: finalProducts.length,
