@@ -2,7 +2,7 @@ import { getCurrentUser } from "../services/dirUser.service.js";
 
 export const getMe = async (req, res) => {
     try {
-        const token = req.cookies?.inquiry_bazaar_token;
+        const token = req.cookies?.seller_inquiry_bazaar_token
 
         const result = await getCurrentUser(token);
 
