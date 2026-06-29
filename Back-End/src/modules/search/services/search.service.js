@@ -316,6 +316,7 @@ export const searchPageService = async (slug, location = "All India", page = 1, 
             type: "category",
             metaTitle: category.metaTitle,
             metaDescription: category.metaDescription,
+            faqs: category.faqs,
             ...(await attach(
                 await Product.find({
                     supplierId: { $in: supplierIds, },
