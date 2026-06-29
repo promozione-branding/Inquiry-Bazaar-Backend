@@ -30,26 +30,17 @@ export const globalSearch = async (req, res) => {
 export const getSearchPage = async (req, res) => {
     try {
         const { slug } = req.params;
+        const { page = 1, limit = 10, location = "India", } = req.query;
 
-        const data = await searchPageService(slug);
+        const data = await searchPageService(
+            slug,
+            location,
+            Number(page),
+            Number(limit)
+        );
 
-        if (!data) {
-            return res.status(404).json({
-                success: false,
-                message: "Not Found",
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            data,
-        });
+        return res.status(200).json({ success: true, data, });
     } catch (error) {
-        console.error(error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Server Error",
-        });
+        return res.status(500).json({ success: false, message: error.message, });
     }
 };

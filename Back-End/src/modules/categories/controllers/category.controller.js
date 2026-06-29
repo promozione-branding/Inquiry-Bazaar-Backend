@@ -1,4 +1,4 @@
-import { getAllCategoriesService, getMainCategoriesService, getCategoryDetailsService, getSubCategoryDetailsService, getSubCategoryLocationDetailsService, createCategory, findCategoryById, updateCategory, removeCategory } from "../services/category.service.js";
+import { getAllCategoriesService, getMainCategoriesService, getCategoryDetailsService, getSubCategoryDetailsService, getSubCategoryLocationDetailsService, createCategory, findCategoryById, updateCategory, removeCategory, addCategoryCoverageService, removeCategoryCoverageService, getCategoryCoverageService } from "../services/category.service.js";
 
 export const getAllCategories = async (req, res) => {
   try {
@@ -87,8 +87,9 @@ export const getSubCategoryDetails = async (req, res) => {
 export const getSubCategoryLocationDetails = async (req, res) => {
   try {
     const { slug, location } = req.params;
-
-    const data = await getSubCategoryLocationDetailsService(slug, location);
+    const page = Number(req.query.page || 1);
+    const limit = Number(req.query.limit || 10);
+    const data = await getSubCategoryLocationDetailsService(slug, location, page, limit);
 
     return res.status(200).json({
       success: true,
@@ -157,6 +158,56 @@ export const deleteCategory = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const addCategoryCoverageController = async (req, res) => {
+  try {
+    const data = await addCategoryCoverageService(req.body);
+
+    res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const removeCategoryCoverageController = async (req, res) => {
+  try {
+    const data = await removeCategoryCoverageService(req.body);
+
+    res.json({
+      success: true,
+      data,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const getCategoryCoverageController = async (req, res) => {
+  try {
+    const data = await getCategoryCoverageService(req.params.supplierId);
+
+    res.json({
+      success: true,
+      data,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
     });
   }
 };

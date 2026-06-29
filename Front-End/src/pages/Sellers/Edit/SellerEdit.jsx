@@ -284,7 +284,7 @@ export default function SellerEdit() {
 
               {/* SERVICE LOCATION */}
               {activeTab === "service" && (
-                <ServiceSection supplierData={supplierData} fetchData={fetchData} />
+                <ServiceSection supplierData={supplierData} fetchData={fetchData} id={id} />
               )}
 
                {activeTab === "asignEmployee" && (

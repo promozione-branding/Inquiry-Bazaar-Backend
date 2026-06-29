@@ -17,9 +17,7 @@ export const getCurrentUser = async (token) => {
 
     const [session, user] = await Promise.all([
         Session.findById(decoded.sessionId),
-
-        User.findById(decoded.id)
-            .select("-password").lean(),
+        User.findById(decoded.id).select("-password").lean(),
     ]);
 
     if (!session) {

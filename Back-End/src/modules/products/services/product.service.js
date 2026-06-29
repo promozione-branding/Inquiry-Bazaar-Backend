@@ -57,6 +57,7 @@ export const getAllProductService = async () => {
 
 export const getSupplierProductsService = async (supplierId) => {
   const products = await Product.find({ supplierId, })
+    .populate("subCategoryId", "name slug")
     .sort({ createdAt: -1, }).lean();
 
   const data = await Promise.all(products.map(async (item) => {
