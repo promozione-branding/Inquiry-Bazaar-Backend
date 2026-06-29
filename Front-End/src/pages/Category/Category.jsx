@@ -7,6 +7,7 @@ import axios from 'axios';
 import toast from "react-hot-toast";
 import { Plus, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import "./category.css";
 
 export default function Category() {
   const { user } = useSelector((state) => state.auth);
