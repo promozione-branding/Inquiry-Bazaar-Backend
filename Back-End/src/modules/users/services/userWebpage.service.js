@@ -56,7 +56,7 @@ export const getWebpageBySlugService = async (slug) => {
 
     // OLD LOGIC (unchanged)
     const products = await Product.find({ supplierId: webpage?.userId?._id, })
-        .sort({ createdAt: -1 }).limit(8).lean()
+        .sort({ createdAt: -1 }).lean()
         .populate("categoryId", "name slug").populate("subCategoryId", "name slug");
 
     const productsWithMedia = await Promise.all(products.map(async (product) => {
