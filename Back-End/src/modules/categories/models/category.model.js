@@ -25,6 +25,16 @@ const categorySchema = new mongoose.Schema(
       trim: true,
     },
 
+    citymetaTitle: {
+      type: String,
+      trim: true,
+    },
+
+    citymetaDescription: {
+      type: String,
+      trim: true,
+    },
+
     categoryDescription: {
       type: String,
     },
