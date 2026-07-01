@@ -24,6 +24,8 @@ export default function AddCategory() {
     imageAlt: "",
     metaTitle: "",
     metaDescription: "",
+    citymetaTitle: "",
+    citymetaDescription: "",
     categoryDescription: "",
     image: null,
     faqs: [{ question: "", answer: "", },],
@@ -93,6 +95,8 @@ export default function AddCategory() {
       payload.append("imageAlt", formData.imageAlt);
       payload.append("metaTitle", formData.metaTitle);
       payload.append("metaDescription", formData.metaDescription);
+          payload.append("citymetaTitle", formData.citymetaTitle);
+      payload.append("citymetaDescription", formData.citymetaDescription);
       payload.append("categoryDescription", formData.categoryDescription);
       payload.append("faqs",
         JSON.stringify(formData.faqs)
@@ -235,6 +239,30 @@ export default function AddCategory() {
                 <textarea
                   name="metaDescription"
                   placeholder="Meta Description"
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 shadow-sm rounded-lg p-3 focus:outline-none focus:ring-0 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  City Meta Title
+                </label>
+                <input
+                  name="citymetaTitle"
+                  placeholder="City Meta Title"
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 shadow-sm rounded-lg p-3 focus:outline-none focus:ring-0 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  City Meta Description
+                </label>
+                <textarea
+                  name="citymetaDescription"
+                  placeholder="City Meta Description"
                   onChange={handleChange}
                   className="w-full border border-gray-300 shadow-sm rounded-lg p-3 focus:outline-none focus:ring-0 focus:border-blue-500"
                 />

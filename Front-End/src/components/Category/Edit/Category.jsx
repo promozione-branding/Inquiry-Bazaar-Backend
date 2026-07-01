@@ -25,6 +25,8 @@ export default function EditCategory() {
         imageAlt: "",
         metaTitle: "",
         metaDescription: "",
+        citymetaTitle: "",
+        citymetaDescription: "",
         categoryDescription: "",
         image: null,
         faqs: [{ question: "", answer: "", },],
@@ -54,6 +56,8 @@ export default function EditCategory() {
                 imageAlt: data.imageAlt,
                 metaTitle: data.metaTitle,
                 metaDescription: data.metaDescription,
+                citymetaTitle: data.citymetaTitle,
+                citymetaDescription: data.citymetaDescription,
                 categoryDescription: data.categoryDescription,
                 image: null,
                 faqs: data.faqs?.length ? data.faqs : [{ question: "", answer: "", }],
@@ -64,6 +68,7 @@ export default function EditCategory() {
             toast.error("Load failed");
         }
     };
+    console.log(categories);
 
     const handleChange = (e) => {
         setFormData({
@@ -128,6 +133,7 @@ export default function EditCategory() {
         fetchCategory();
     }, []);
 
+    console.log(categories);
     return (
         <div className="flex min-h-screen bg-gray-100">
             <SideBar open={openSideBar} setOpen={setOpenSideBar} />
@@ -250,6 +256,32 @@ export default function EditCategory() {
                                     value={formData.metaDescription}
                                     name="metaDescription"
                                     placeholder="Meta Description"
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-300 shadow-sm rounded-lg p-3 focus:outline-none focus:ring-0 focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">
+                                    City Meta Title
+                                </label>
+                                <input
+                                    value={formData.citymetaTitle}
+                                    name="citymetaTitle"
+                                    placeholder="City Meta Title"
+                                    onChange={handleChange}
+                                    className="w-full border border-gray-300 shadow-sm rounded-lg p-3 focus:outline-none focus:ring-0 focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">
+                                    City Meta Description
+                                </label>
+                                <textarea
+                                    value={formData.citymetaDescription}
+                                    name="citymetaDescription"
+                                    placeholder="City Meta Description"
                                     onChange={handleChange}
                                     className="w-full border border-gray-300 shadow-sm rounded-lg p-3 focus:outline-none focus:ring-0 focus:border-blue-500"
                                 />
