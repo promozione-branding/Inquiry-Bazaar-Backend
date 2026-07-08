@@ -59,16 +59,8 @@ export const getCategoryDetailsService = async (slug) => {
         { $match: { subCategoryId: subCat._id, }, },
         { $sample: { size: 300, }, },
         { $group: { _id: "$supplierId", product: { $first: "$$ROOT", }, }, },
-        { $replaceRoot: { newRoot: "$product", }, },
-        { $limit: 6, },
-        {
-          $project: {
-            name: 1,
-            slug: 1,
-            price: 1,
-            supplierId: 1,
-          },
-        },
+        { $replaceRoot: { newRoot: "$product", }, }, { $limit: 6, },
+        { $project: { name: 1, slug: 1, price: 1, supplierId: 1, }, },
       ]);
 
       if (!products.length) {
@@ -116,34 +108,13 @@ export const getCategoryDetailsService = async (slug) => {
 };
 
 export const getSubCategoryDetailsService = async (slug) => {
+  // console.time("Metacategory");
   const category = await Category.findOne({ slug })
-    .populate("industryId", "name slug")
-    .populate("parentCategoryId", "name slug").lean();
+  // console.timeEnd("Metacategory");
 
   if (!category) {
     return null;
   }
-
-  const products = await Product.find({ $or: [{ subCategoryId: category._id }, { categoryId: category._id },], })
-    .populate("categoryId", "name slug")
-    .populate("subCategoryId", "name slug")
-    .sort({ createdAt: -1 }).lean();
-
-  const finalProducts = await Promise.all(
-    products.map(async (product) => {
-      const [media, supplier, business, webpage] = await Promise.all([
-        ProductMedia.find({ productId: product._id, }).lean(),
-        User.findById(product.supplierId).select("name email phone profileImage").lean(),
-        Business.findOne({ userId: product.supplierId, }).lean(),
-        Webpage.findOne({ userId: product.supplierId, }).lean(),
-      ]);
-
-      return {
-        ...product, media,
-        supplier: supplier ? { ...supplier, business, webpage } : null,
-      };
-    })
-  );
 
   return {
     category: {
@@ -151,13 +122,11 @@ export const getSubCategoryDetailsService = async (slug) => {
       name: category.name,
       metaTitle: category.metaTitle,
       metaDescription: category.metaDescription,
+      citymetaTitle: category.citymetaTitle,
+      citymetaDescription: category.citymetaDescription,
       slug: category.slug,
-      imageUrl: category.imageUrl,
       categoryDescription: category.categoryDescription,
-      industry: category.industryId,
-      parentCategory: category.parentCategoryId,
     },
-    products: finalProducts,
   };
 };
 
@@ -166,10 +135,12 @@ export const getSubCategoryLocationDetailsService = async (slug, location, page 
   const skip = (page - 1) * limit;
 
   // CATEGORY
+  // console.time("category");
   const category = await Category.findOne({ slug })
     .populate("industryId", "name slug")
     .populate("parentCategoryId", "name slug")
     .lean();
+  // console.timeEnd("category");
 
   if (!category) {
     throw new Error("Category not found");
@@ -196,12 +167,18 @@ export const getSubCategoryLocationDetailsService = async (slug, location, page 
   }
 
   // NORMAL SUPPLIERS
-  const normalSupplierIds = await Business.find({ serviceLocations: { $in: nearbyCities, }, })
-    .distinct("userId");
-  const coverageSupplierIds = await CategoryCoverage.find({ subCategoryId: category._id, locations: { $in: nearbyCities, }, })
-    .distinct("supplierId");
+  // console.time("suppliers");
+  const [normalSupplierIds, coverageSupplierIds] = await Promise.all([
+    Business.find({ serviceLocations: { $in: nearbyCities }, }).distinct("userId"),
+    CategoryCoverage.find({ subCategoryId: category._id, locations: { $in: nearbyCities }, }).distinct("supplierId"),
+  ]);
+
   const supplierIds = [...new Set([...normalSupplierIds, ...coverageSupplierIds,]),];
+  // console.timeEnd("suppliers");
+
+  // console.time("memberships");
   const memberships = await Membership.find({ supplierId: { $in: supplierIds, }, membershipStatus: "active", }).lean();
+  // console.timeEnd("memberships");
 
   const priority = {
     elite: 1,
@@ -219,6 +196,7 @@ export const getSubCategoryLocationDetailsService = async (slug, location, page 
     },]));
 
   // ONLY CATEGORY PRODUCTS
+  // console.time("products");
   const products = await Product.aggregate([
     {
       $match: {
@@ -231,7 +209,7 @@ export const getSubCategoryLocationDetailsService = async (slug, location, page 
         ],
       },
     },
-    { $sample: { size: 5000, }, },
+    // { $sample: { size: 5000, }, },
     {
       $group: {
         _id: "$supplierId",
@@ -245,28 +223,64 @@ export const getSubCategoryLocationDetailsService = async (slug, location, page 
   products.sort((a, b) =>
     (membershipMap[String(a.supplierId)]?.order || 99) -
     (membershipMap[String(b.supplierId)]?.order || 99));
+  // console.timeEnd("products");
 
   // PAGINATION
   const paginated = products.slice(skip, skip + Number(limit));
-  const final = await Promise.all(paginated.map(async (product) => {
-    const [media, supplier, business, webpage,] = await Promise.all([
-      ProductMedia.find({ productId: product._id, }).lean(),
-      User.findById(product.supplierId).select("name email phone profileImage").lean(),
-      Business.findOne({ userId: product.supplierId, }).lean(),
-      Webpage.findOne({ userId: product.supplierId, }).lean(),
-    ]);
+
+  const supplierIdsPage = paginated.map((p) => p.supplierId);
+  const productIds = paginated.map((p) => p._id);
+
+  // Fetch everything in parallel
+  // console.time("media");
+  const [allMedia, allUsers, allBusinesses, allWebpages] = await Promise.all([
+    ProductMedia.find({
+      productId: { $in: productIds },
+    }).lean(),
+
+    User.find({
+      _id: { $in: supplierIdsPage },
+    })
+      .select("name email phone profileImage")
+      .lean(),
+
+    Business.find({
+      userId: { $in: supplierIdsPage },
+    }).lean(),
+
+    Webpage.find({
+      userId: { $in: supplierIdsPage },
+    }).lean(),
+  ]);
+
+  // Create lookup maps
+  const mediaMap = {};
+  for (const media of allMedia) {
+    const id = String(media.productId);
+    if (!mediaMap[id]) mediaMap[id] = [];
+    mediaMap[id].push(media);
+  }
+  // console.timeEnd("media");
+
+  const userMap = Object.fromEntries(allUsers.map((u) => [String(u._id), u]));
+  const businessMap = Object.fromEntries(allBusinesses.map((b) => [String(b.userId), b]));
+  const webpageMap = Object.fromEntries(allWebpages.map((w) => [String(w.userId), w]));
+
+  // Final response
+  const final = paginated.map((product) => {
+    const supplierId = String(product.supplierId);
 
     return {
       ...product,
-      media,
+      media: mediaMap[String(product._id)] || [],
       supplier: {
-        ...supplier,
-        membership: membershipMap[String(product.supplierId)] || { membershipType: "normal", },
-        business,
-        webpage,
+        ...(userMap[supplierId] || {}),
+        membership: membershipMap[supplierId] || { membershipType: "normal", },
+        business: businessMap[supplierId] || null,
+        webpage: webpageMap[supplierId] || null,
       },
     };
-  }));
+  });
 
   return {
     category: {
@@ -290,7 +304,7 @@ export const getSubCategoryLocationDetailsService = async (slug, location, page 
 };
 
 
-export const createCategory = async ({ name, metaTitle, metaDescription, imageAlt, categoryDescription,citymetaTitle ,citymetaDescription,  industryId, parentCategoryId, faqs, file, }) => {
+export const createCategory = async ({ name, metaTitle, metaDescription, imageAlt, categoryDescription, citymetaTitle, citymetaDescription, industryId, parentCategoryId, faqs, file, }) => {
   if (!name) throw new Error("Name required");
   if (!industryId) throw new Error("Industry required");
 
@@ -322,7 +336,7 @@ export const createCategory = async ({ name, metaTitle, metaDescription, imageAl
     metaTitle: metaTitle || name,
     metaDescription: metaDescription || `Explore ${name}`,
     categoryDescription,
-    citymetaTitle ,
+    citymetaTitle,
     citymetaDescription,
     industryId,
     parentCategoryId: parentCategoryId || null,

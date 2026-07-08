@@ -82,5 +82,15 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+productSchema.index({
+  supplierId: 1,
+  subCategoryId: 1,
+});
+
+productSchema.index({
+  supplierId: 1,
+  categoryId: 1,
+});
+
 export default mongoose.models.Product ||
   mongoose.model("Product", productSchema);

@@ -82,4 +82,18 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+categorySchema.index({
+  slug: 1,
+}, {
+  unique: true,
+});
+
+categorySchema.index({
+  parentCategoryId: 1,
+});
+
+categorySchema.index({
+  industryId: 1,
+});
+
 export default mongoose.models.Category || mongoose.model("Category", categorySchema);

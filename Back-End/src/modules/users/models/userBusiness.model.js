@@ -81,5 +81,8 @@ const businessSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+businessSchema.index({ userId: 1 });
+businessSchema.index({ serviceLocations: 1 });
+
 export default mongoose.models.Business ||
     mongoose.model("Business", businessSchema);

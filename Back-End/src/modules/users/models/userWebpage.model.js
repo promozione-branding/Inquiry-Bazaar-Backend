@@ -77,4 +77,6 @@ const webpageSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+webpageSchema.index({ userId: 1 });
+
 export default mongoose.models.Webpage || mongoose.model("Webpage", webpageSchema);

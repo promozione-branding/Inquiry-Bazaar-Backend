@@ -58,4 +58,9 @@ const membershipSchema = new mongoose.Schema(
     }
 );
 
+membershipSchema.index({
+    supplierId: 1,
+    membershipStatus: 1,
+});
+
 export default mongoose.model("Membership", membershipSchema);

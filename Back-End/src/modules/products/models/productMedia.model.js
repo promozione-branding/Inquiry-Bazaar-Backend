@@ -31,5 +31,7 @@ const productMediaSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+productMediaSchema.index({ productId: 1 });
+
 export default mongoose.models.ProductMedia ||
   mongoose.model("ProductMedia", productMediaSchema);

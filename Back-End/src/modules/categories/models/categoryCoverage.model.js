@@ -31,4 +31,9 @@ categoryCoverageSchema.index(
     { unique: true, }
 );
 
+categoryCoverageSchema.index({
+    subCategoryId: 1,
+    locations: 1,
+});
+
 export default mongoose.models.CategoryCoverage || mongoose.model("CategoryCoverage", categoryCoverageSchema);
