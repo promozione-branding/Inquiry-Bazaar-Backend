@@ -2,18 +2,20 @@ import { addServiceLocationService, getAllSuppliersService, getSupplierByIdServi
 
 export const getAllSuppliers = async (req, res) => {
     try {
-        const suppliers = await getAllSuppliersService();
+        const { page = 1, limit = 25, search = "", city = "", membershipType = "", dateFilter = "all", } = req.query;
+        // console.log("page", page, limit)
+        const result = await getAllSuppliersService({
+            page: Number(page),
+            limit: Number(limit),
+            search,
+            city,
+            membershipType,
+            dateFilter,
+        });
 
-        return res.status(200).json({
-            success: true,
-            count: suppliers.length,
-            data: suppliers,
-        });
+        return res.status(200).json({ success: true, ...result, });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message,
-        });
+        return res.status(500).json({ success: false, message: error.message, });
     }
 };
 

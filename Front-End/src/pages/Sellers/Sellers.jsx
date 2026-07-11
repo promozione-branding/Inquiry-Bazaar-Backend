@@ -5,52 +5,93 @@ import Header from '../../components/Header';
 import axios from 'axios';
 import { Edit, Eye, Filter, Headset, Images, Package, Search, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { locations } from '../../data/data';
 
 export default function Sellers() {
     const { user } = useSelector((state) => state.auth);
     const [openSideBar, setOpenSideBar] = useState(false);
-    const [allSuppliers, setAllSuppliers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [openFilter, setOpenFilter] = useState(false);
+    const [membershipType, setMembershipType] = useState("");
+    const [selectedCity, setSelectedCity] = useState("");
+    const [tempMembershipType, setTempMembershipType] = useState("");
+    const [tempSelectedCity, setTempSelectedCity] = useState("");
+    const [suppliers, setSuppliers] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [limit, setLimit] = useState(25);
+    const [searchInput, setSearchInput] = useState("");
+    const [dateFilter, setDateFilter] = useState("all");
 
     useEffect(() => {
-        const fetchData = async () => {
+        const timer = setTimeout(() => {
+            setSearchTerm(searchInput);
+            setCurrentPage(1);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchInput]);
+
+    useEffect(() => {
+        fetchSuppliers();
+    }, [currentPage, limit, membershipType, selectedCity, searchTerm, dateFilter,]);
+
+    const fetchSuppliers = async () => {
+        try {
             setLoading(true);
-            try {
-                const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/supplier/all`, { withCredentials: true, });
-                setAllSuppliers(res.data.data || []);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
+            const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/supplier/all`,
+                {
+                    params: {
+                        page: currentPage,
+                        limit,
+                        search: searchTerm,
+                        city: selectedCity,
+                        membershipType,
+                        dateFilter,
+                    },
+                    withCredentials: true,
+                }
+            );
+            console.log(data)
+            setSuppliers(data.data);
+            setTotal(data.total);
+            setTotalPages(data.totalPages);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        fetchData();
-    }, []);
+    const getVisiblePages = () => {
+        const delta = 1; // pages before & after current
+        const range = [];
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 20;
+        const start = Math.max(2, currentPage - delta);
+        const end = Math.min(totalPages - 1, currentPage + delta);
 
-    // Search filter
-    const filteredSuppliers = allSuppliers.filter((supplier) => {
-        const search = searchTerm.toLowerCase();
+        range.push(1);
 
-        return (
-            supplier?.name?.toLowerCase().includes(search) ||
-            supplier?.business?.companyName?.toLowerCase().includes(search) ||
-            supplier?.phone?.toLowerCase().includes(search) ||
-            supplier?.email?.toLowerCase().includes(search)
-        );
-    });
+        if (start > 2) {
+            range.push("...");
+        }
 
-    // Pagination after filtering
-    const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+        for (let i = start; i <= end; i++) {
+            range.push(i);
+        }
 
-    const paginatedSuppliers = filteredSuppliers.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+        if (end < totalPages - 1) {
+            range.push("...");
+        }
+
+        if (totalPages > 1) {
+            range.push(totalPages);
+        }
+
+        return range;
+    };
+
+    const visiblePages = getVisiblePages();
 
     // console.log(allSuppliers)
 
@@ -70,7 +111,7 @@ export default function Sellers() {
                                         Suppliers
                                     </h2>
                                     <p className="text-sm text-gray-500">
-                                        Total Suppliers: {loading ? "Loading..." : filteredSuppliers.length}
+                                        Total Suppliers: {loading ? "Loading..." : total}
                                     </p>
                                 </div>
 
@@ -79,11 +120,8 @@ export default function Sellers() {
                                         <input
                                             type="text"
                                             placeholder="Search supplier..."
-                                            value={searchTerm}
-                                            onChange={(e) => {
-                                                setSearchTerm(e.target.value);
-                                                setCurrentPage(1); // reset to first page
-                                            }}
+                                            value={searchInput}
+                                            onChange={(e) => setSearchInput(e.target.value)}
                                             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                         <Search
@@ -92,16 +130,24 @@ export default function Sellers() {
                                         />
                                     </div>
 
-                                    <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                                    <button onClick={() => setOpenFilter(true)} className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
                                         <Filter size={18} />
                                         Filter
                                     </button>
 
-                                    <select className="px-4 py-2 border border-gray-300 rounded-lg">
-                                        <option>All Suppliers</option>
-                                        <option>Manufacturer</option>
-                                        <option>Trader</option>
-                                        <option>Exporter</option>
+                                    <select
+                                        value={dateFilter}
+                                        onChange={(e) => {
+                                            setDateFilter(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        className="px-4 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-200 rounded-lg"
+                                    >
+                                        <option value="all">All Time</option>
+                                        <option value="today">Today</option>
+                                        <option value="yesterday">Yesterday</option>
+                                        <option value="7days">Last 7 Days</option>
+                                        <option value="30days">Last 30 Days</option>
                                     </select>
                                 </div>
                             </div>
@@ -143,8 +189,8 @@ export default function Sellers() {
                                                 ))}
                                             </tr>
                                         ))
-                                    ) : paginatedSuppliers.length > 0 ? (
-                                        paginatedSuppliers.map((i, index) => (
+                                    ) : suppliers.length > 0 ? (
+                                        suppliers.map((i, index) => (
                                             <tr key={i._id} className={`border-t border-gray-100 hover:bg-blue-50/40 transition ${index % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}>
                                                 <td className="px-4 py-4">
                                                     <div className="flex items-center gap-3">
@@ -192,8 +238,17 @@ export default function Sellers() {
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-4">
-                                                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                                        Active
+                                                    <span
+                                                        className={`px-3 py-1 rounded-full flex text-nowrap text-xs font-semibold capitalize ${i.membership?.membershipType === "elite"
+                                                            ? "bg-purple-100 text-purple-700"
+                                                            : i.membership?.membershipType === "pro"
+                                                                ? "bg-blue-100 text-blue-700"
+                                                                : i.membership?.membershipType === "growth"
+                                                                    ? "bg-green-100 text-green-700"
+                                                                    : "bg-orange-100 text-orange-700"
+                                                            }`}
+                                                    >
+                                                        {i.membership?.membershipType || "NO Plan"}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-4">
@@ -229,46 +284,71 @@ export default function Sellers() {
                             </table>
                         </div>
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-gray-200 bg-white">
-                            <p className="text-sm text-gray-500">
-                                Showing{" "}
-                                <span className="font-medium">
-                                    {filteredSuppliers.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
-                                </span>
+                            <div className='flex items-center gap-2'>
+                                <p className="text-sm text-gray-500">
+                                    Showing{" "}
+                                    <span className="font-medium">
+                                        {total === 0 ? 0 : (currentPage - 1) * limit + 1}
+                                    </span>
 
-                                {" "}to{" "}
+                                    {" "}to{" "}
 
-                                <span className="font-medium">
-                                    {Math.min(currentPage * itemsPerPage, filteredSuppliers.length)}
-                                </span>
+                                    <span className="font-medium">
+                                        {Math.min(currentPage * limit, total)}
+                                    </span>
 
-                                {" "}of{" "}
+                                    {" "}of{" "}
 
-                                <span className="font-medium">
-                                    {filteredSuppliers.length}
-                                </span>
+                                    <span className="font-medium">
+                                        {total}
+                                    </span>
 
-                                {" "}suppliers
-                            </p>
+                                    {" "}suppliers
+                                </p>
+                                <div>
+                                    <select value={limit}
+                                        onChange={(e) => { setLimit(Number(e.target.value)); setCurrentPage(1); }}
+                                        className="px-2 py-2 border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-200 rounded-lg"
+                                    >
+                                        <option value={25}>25</option>
+                                        <option value={50}>50</option>
+                                        <option value={75}>75</option>
+                                        <option value={100}>100</option>
+                                    </select>
+                                </div>
+                            </div>
 
                             <div className="flex items-center gap-2">
-                                <button onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={loading || currentPage === 1}
+                                <button
+                                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                                    disabled={currentPage === 1}
                                     className="px-3 py-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                                 >
                                     Previous
                                 </button>
 
-                                {[...Array(totalPages)].map((_, index) => (
-                                    <button key={index} onClick={() => setCurrentPage(index + 1)}
-                                        className={`w-10 h-10 rounded-lg font-medium transition ${currentPage === index + 1
-                                            ? "bg-blue-600 text-white"
-                                            : "border border-gray-300 hover:bg-gray-100"
-                                            }`}
-                                    >
-                                        {index + 1}
-                                    </button>
-                                ))}
+                                {visiblePages.map((page, index) =>
+                                    page === "..." ? (
+                                        <span key={`dots-${index}`} className="px-2 text-gray-500">
+                                            ...
+                                        </span>
+                                    ) : (
+                                        <button
+                                            key={page}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`w-10 h-10 rounded-lg border transition ${currentPage === page
+                                                ? "bg-blue-600 text-white border-blue-600"
+                                                : "border-gray-300 hover:bg-gray-100"
+                                                }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    )
+                                )}
 
-                                <button onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={loading || currentPage === totalPages}
+                                <button
+                                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
                                     className="px-3 py-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                                 >
                                     Next
@@ -277,6 +357,106 @@ export default function Sellers() {
                         </div>
                     </div>
                 </main>
+            </div>
+
+            {/* Overlay */}
+            {openFilter && (
+                <div
+                    className="fixed inset-0 bg-black/40 z-40"
+                    onClick={() => setOpenFilter(false)}
+                />
+            )}
+
+            {/* Sidebar */}
+            <div
+                className={`fixed top-0 right-0 h-full w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ${openFilter ? "translate-x-0" : "translate-x-full"
+                    }`}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between p-5 border-b border-gray-300">
+                    <h2 className="text-lg font-semibold">Filters</h2>
+
+                    <button
+                        onClick={() => setOpenFilter(false)}
+                        className="text-gray-500 hover:text-black text-xl"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                <div className="p-5 space-y-6">
+
+                    {/* Membership Type */}
+                    <div>
+                        <label className="block mb-2 font-medium">
+                            Membership Type
+                        </label>
+
+                        <select
+                            value={tempMembershipType}
+                            onChange={(e) => setTempMembershipType(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">Select Membership</option>
+                            <option value="Elite">Elite</option>
+                            <option value="Pro">Pro</option>
+                            <option value="Growth">Growth</option>
+                            <option value="Starter">Starter</option>
+                        </select>
+                    </div>
+
+                    {/* Location */}
+                    <div>
+                        <label className="block mb-2 font-medium">
+                            Location
+                        </label>
+
+                        <select
+                            value={tempSelectedCity}
+                            onChange={(e) => setTempSelectedCity(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:border-blue-500"
+                        >
+                            <option value="">Select City</option>
+
+                            {locations.flatMap((state) =>
+                                state.cities.map((city) => (
+                                    <option key={city} value={city}>
+                                        {city}
+                                    </option>
+                                ))
+                            )}
+                        </select>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex gap-3 pt-4">
+                        <button
+                            onClick={() => {
+                                setTempMembershipType("");
+                                setTempSelectedCity("");
+                                setMembershipType("");
+                                setSelectedCity("");
+                                setCurrentPage(1);
+                                setOpenFilter(false);
+                            }}
+                            className="flex-1 border border-gray-300 rounded-lg py-2 hover:bg-gray-100"
+                        >
+                            Reset
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setMembershipType(tempMembershipType);
+                                setSelectedCity(tempSelectedCity);
+                                setCurrentPage(1);
+                                setOpenFilter(false);
+                            }}
+                            className="flex-1 bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700"
+                        >
+                            Apply
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     )
