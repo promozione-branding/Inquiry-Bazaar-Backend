@@ -4,7 +4,7 @@ import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
-import backgroundRemovalRoutes from "./modules/background-removal/routes/bgRemoval.route.js";
+import backgroundRemovalRoutes from "./modules/backgrdRemoval/routes/bgRemoval.route.js";
 import industryRoutes from "./modules/industries/routes/industry.route.js";
 import categoryRoutes from "./modules/categories/routes/category.route.js";
 import searchRoutes from "./modules/search/routes/search.route.js";
