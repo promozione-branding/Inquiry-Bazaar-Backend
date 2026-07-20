@@ -45,6 +45,7 @@ export const getIndustryBySlugService = async (slug) => {
                     name: 1,
                     slug: 1,
                     imageUrl: 1,
+                    imageAlt: 1,
                   },
                 },
               ],
@@ -56,6 +57,7 @@ export const getIndustryBySlugService = async (slug) => {
               name: 1,
               slug: 1,
               imageUrl: 1,
+              imageAlt: 1,
               subCategories: 1,
             },
           },
@@ -101,7 +103,8 @@ export const getIndustryTreeService = async () => {
                   $project: {
                     name: 1,
                     slug: 1,
-                    imageUrl: 1
+                    imageUrl: 1,
+                    imageAlt: 1
                   }
                 },
                 // {
@@ -116,6 +119,7 @@ export const getIndustryTreeService = async () => {
               name: 1,
               slug: 1,
               imageUrl: 1,
+              imageAlt: 1,
               subCategories: 1
             }
           },
@@ -131,6 +135,7 @@ export const getIndustryTreeService = async () => {
         name: 1,
         slug: 1,
         imageUrl: 1,
+        imageAlt: 1,
         categories: 1
       }
     },

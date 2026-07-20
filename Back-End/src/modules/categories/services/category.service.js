@@ -51,7 +51,7 @@ export const getCategoryDetailsService = async (slug) => {
 
   if (!category) return null;
   const subCategories = await Category.find({ parentCategoryId: category._id, })
-    .select("name slug imageUrl").sort({ name: 1 }).lean();
+    .select("name slug imageUrl imageAlt").sort({ name: 1 }).lean();
 
   const subCategoriesWithProducts = await Promise.all(
     subCategories.map(async (subCat) => {
@@ -69,7 +69,7 @@ export const getCategoryDetailsService = async (slug) => {
 
       const productIds = products.map((p) => p._id);
       const media = await ProductMedia.find({ productId: { $in: productIds, }, })
-        .select("productId url type isPrimary").lean();
+        .select("productId url type isPrimary altName").lean();
 
       const mediaMap = {};
 
