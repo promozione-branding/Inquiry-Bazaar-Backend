@@ -35,7 +35,9 @@ app.use(cors({
     "https://backend.inquirybazaar.com",
     "https://dir.inquirybazaar.com",
     "https://buyer.inquirybazaar.com",
-    "https://www.buyer.inquirybazaar.com"
+    "https://www.buyer.inquirybazaar.com",
+    "https://enquirybazaar.com",
+    "https://www.enquirybazaar.com",
   ],
   credentials: true,
 })
