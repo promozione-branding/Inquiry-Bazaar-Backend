@@ -130,143 +130,246 @@ export const getSubCategoryDetailsService = async (slug) => {
   };
 };
 
+const MEMBERSHIP_PRIORITY = {
+  elite: 1,
+  pro: 2,
+  growth: 3,
+  starter: 4,
+};
 
-export const getSubCategoryLocationDetailsService = async (slug, location, page = 1, limit = 10) => {
+const DELHI_CITIES = ["Delhi", "New Delhi"];
+
+export const getSubCategoryLocationDetailsService = async (
+  slug,
+  location,
+  page = 1,
+  limit = 10
+) => {
+  page = Math.max(1, Number(page) || 1);
+  limit = Math.min(100, Math.max(1, Number(limit) || 10));
+
   const skip = (page - 1) * limit;
 
   // CATEGORY
-  // console.time("category");
   const category = await Category.findOne({ slug })
     .populate("industryId", "name slug")
     .populate("parentCategoryId", "name slug")
     .lean();
-  // console.timeEnd("category");
 
   if (!category) {
     throw new Error("Category not found");
   }
 
-  // LOCATION
-  let nearbyCities = [];
+  const isAllIndia =
+    location?.toLowerCase() === "india" ||
+    location?.toLowerCase() === "all india";
 
-  if (location === "India" || location === "All India") {
-    nearbyCities = Object.keys(cityCoordinates);
-  } else {
-    const selected = cityCoordinates[location];
-    if (!selected) {
-      throw new Error("Invalid city");
-    }
+  const selectedCity = isAllIndia
+    ? null
+    : Object.keys(cityCoordinates).find(
+      (city) => city.toLowerCase() === location?.toLowerCase()
+    );
 
-    nearbyCities = Object.keys(cityCoordinates).filter((city) =>
-      getDistance(
-        selected.lat,
-        selected.lng,
-        cityCoordinates[city].lat,
-        cityCoordinates[city].lng
-      ) <= 200);
+  if (!isAllIndia && !selectedCity) {
+    throw new Error("Invalid city");
   }
 
-  // NORMAL SUPPLIERS
-  // console.time("suppliers");
-  const [normalSupplierIds, coverageSupplierIds] = await Promise.all([
-    Business.find({ serviceLocations: { $in: nearbyCities }, }).distinct("userId"),
-    CategoryCoverage.find({ subCategoryId: category._id, locations: { $in: nearbyCities }, }).distinct("supplierId"),
-  ]);
+  // FIND NEARBY CITIES
+  let nearbyCities = [];
 
-  const supplierIds = [...new Set([...normalSupplierIds, ...coverageSupplierIds,]),];
-  // console.timeEnd("suppliers");
+  if (isAllIndia) {
+    nearbyCities = Object.keys(cityCoordinates);
+  } else {
+    const selected = cityCoordinates[selectedCity];
 
-  // console.time("memberships");
-  const memberships = await Membership.find({ supplierId: { $in: supplierIds, }, membershipStatus: "active", }).lean();
-  // console.timeEnd("memberships");
+    nearbyCities = Object.keys(cityCoordinates).filter((city) => {
+      const coordinates = cityCoordinates[city];
 
-  const priority = {
-    elite: 1,
-    pro: 2,
-    growth: 3,
-    starter: 4,
+      return (
+        getDistance(
+          selected.lat,
+          selected.lng,
+          coordinates.lat,
+          coordinates.lng
+        ) <= 200
+      );
+    });
+  }
+
+  // Reusable supplier discovery
+  const getSupplierIds = async (cities) => {
+    const [businessIds, coverageIds] = await Promise.all([
+      Business.distinct("userId", {
+        serviceLocations: { $in: cities },
+      }),
+
+      CategoryCoverage.distinct("supplierId", {
+        subCategoryId: category._id,
+        locations: { $in: cities },
+      }),
+    ]);
+
+    return [
+      ...new Set(
+        [...businessIds, ...coverageIds].map((id) => String(id))
+      ),
+    ];
   };
 
-  const membershipMap = Object.fromEntries(memberships.map((m) => [
-    String(m.supplierId), {
-      order: priority[m.membershipType] || 99,
-      membershipType: m.membershipType,
-      membershipStatus: m.membershipStatus,
-      endDate: m.endDate,
-    },]));
+  // Fetch one product per supplier for this category
+  const getProducts = async (supplierIds) => {
+    if (!supplierIds.length) return [];
 
-  // ONLY CATEGORY PRODUCTS
-  // console.time("products");
-  const products = await Product.aggregate([
-    {
-      $match: {
-        supplierId: {
-          $in: supplierIds.map((id) => new mongoose.Types.ObjectId(id)),
+    const objectIds = supplierIds.map(
+      (id) => new mongoose.Types.ObjectId(id)
+    );
+
+    return Product.aggregate([
+      {
+        $match: {
+          supplierId: { $in: objectIds },
+          $or: [
+            { subCategoryId: category._id },
+            { categoryId: category._id },
+          ],
         },
-        $or: [
-          { subCategoryId: category._id, },
-          { categoryId: category._id, },
-        ],
       },
-    },
-    // { $sample: { size: 5000, }, },
-    {
-      $group: {
-        _id: "$supplierId",
-        product: { $first: "$$ROOT", },
+      // Deterministic product selection per supplier
+      { $sort: { _id: 1 } },
+      {
+        $group: {
+          _id: "$supplierId",
+          product: { $first: "$$ROOT" },
+        },
       },
-    },
-    { $replaceRoot: { newRoot: "$product", }, },
-  ]);
+      { $replaceRoot: { newRoot: "$product" } },
+    ]);
+  };
 
-  // MEMBERSHIP SORT
-  products.sort((a, b) =>
-    (membershipMap[String(a.supplierId)]?.order || 99) -
-    (membershipMap[String(b.supplierId)]?.order || 99));
-  // console.timeEnd("products");
+  // PRIMARY LOCATION PRODUCTS
+  const primarySupplierIds = await getSupplierIds(nearbyCities);
+
+  let products = await getProducts(primarySupplierIds);
+  let fallbackApplied = false;
+
+  // DELHI FALLBACK
+  // Only when no matching products exist in selected area
+  if (!isAllIndia && products.length === 0) {
+    const delhiSupplierIds = await getSupplierIds(DELHI_CITIES);
+
+    products = await getProducts(delhiSupplierIds);
+    fallbackApplied = products.length > 0;
+  }
+
+  // MEMBERSHIPS
+  const productSupplierIds = [
+    ...new Set(products.map((p) => String(p.supplierId))),
+  ];
+
+  const memberships = await Membership.find({
+    supplierId: { $in: productSupplierIds },
+    membershipStatus: "active",
+  }).lean();
+
+  const membershipMap = {};
+
+  for (const membership of memberships) {
+    const supplierId = String(membership.supplierId);
+
+    const current = membershipMap[supplierId];
+    const order = MEMBERSHIP_PRIORITY[membership.membershipType] || 99;
+
+    if (!current || order < current.order) {
+      membershipMap[supplierId] = {
+        order,
+        membershipType: membership.membershipType,
+        membershipStatus: membership.membershipStatus,
+        endDate: membership.endDate,
+      };
+    }
+  }
+
+  // ALL INDIA: IDENTIFY DELHI SUPPLIERS
+  const delhiSupplierSet = isAllIndia
+    ? new Set(await getSupplierIds(DELHI_CITIES))
+    : new Set();
+
+  // SORT BY LOCATION FIRST, MEMBERSHIP SECOND
+  products.sort((a, b) => {
+    const aId = String(a.supplierId);
+    const bId = String(b.supplierId);
+
+    if (isAllIndia) {
+      const aLocationPriority = delhiSupplierSet.has(aId) ? 0 : 1;
+      const bLocationPriority = delhiSupplierSet.has(bId) ? 0 : 1;
+
+      if (aLocationPriority !== bLocationPriority) {
+        return aLocationPriority - bLocationPriority;
+      }
+    }
+
+    const aMembership = membershipMap[aId]?.order || 99;
+    const bMembership = membershipMap[bId]?.order || 99;
+
+    if (aMembership !== bMembership) {
+      return aMembership - bMembership;
+    }
+
+    return aId.localeCompare(bId);
+  });
 
   // PAGINATION
-  const paginated = products.slice(skip, skip + Number(limit));
+  const totalProducts = products.length;
+  const paginated = products.slice(skip, skip + limit);
 
   const supplierIdsPage = paginated.map((p) => p.supplierId);
   const productIds = paginated.map((p) => p._id);
 
-  // Fetch everything in parallel
-  // console.time("media");
-  const [allMedia, allUsers, allBusinesses, allWebpages] = await Promise.all([
-    ProductMedia.find({
-      productId: { $in: productIds },
-    }).lean(),
+  // FETCH SUPPLIER DETAILS
+  const [allMedia, allUsers, allBusinesses, allWebpages] =
+    await Promise.all([
+      ProductMedia.find({
+        productId: { $in: productIds },
+      }).lean(),
 
-    User.find({
-      _id: { $in: supplierIdsPage },
-    })
-      .select("name email phone profileImage")
-      .lean(),
+      User.find({
+        _id: { $in: supplierIdsPage },
+      })
+        .select("name email phone profileImage")
+        .lean(),
 
-    Business.find({
-      userId: { $in: supplierIdsPage },
-    }).lean(),
+      Business.find({
+        userId: { $in: supplierIdsPage },
+      }).lean(),
 
-    Webpage.find({
-      userId: { $in: supplierIdsPage },
-    }).lean(),
-  ]);
+      Webpage.find({
+        userId: { $in: supplierIdsPage },
+      }).lean(),
+    ]);
 
-  // Create lookup maps
+  // LOOKUP MAPS
   const mediaMap = {};
+
   for (const media of allMedia) {
     const id = String(media.productId);
+
     if (!mediaMap[id]) mediaMap[id] = [];
     mediaMap[id].push(media);
   }
-  // console.timeEnd("media");
 
-  const userMap = Object.fromEntries(allUsers.map((u) => [String(u._id), u]));
-  const businessMap = Object.fromEntries(allBusinesses.map((b) => [String(b.userId), b]));
-  const webpageMap = Object.fromEntries(allWebpages.map((w) => [String(w.userId), w]));
+  const userMap = Object.fromEntries(
+    allUsers.map((u) => [String(u._id), u])
+  );
 
-  // Final response
+  const businessMap = Object.fromEntries(
+    allBusinesses.map((b) => [String(b.userId), b])
+  );
+
+  const webpageMap = Object.fromEntries(
+    allWebpages.map((w) => [String(w.userId), w])
+  );
+
+  // FINAL PRODUCTS
   const final = paginated.map((product) => {
     const supplierId = String(product.supplierId);
 
@@ -275,7 +378,9 @@ export const getSubCategoryLocationDetailsService = async (slug, location, page 
       media: mediaMap[String(product._id)] || [],
       supplier: {
         ...(userMap[supplierId] || {}),
-        membership: membershipMap[supplierId] || { membershipType: "normal", },
+        membership: membershipMap[supplierId] || {
+          membershipType: "normal",
+        },
         business: businessMap[supplierId] || null,
         webpage: webpageMap[supplierId] || null,
       },
@@ -295,13 +400,17 @@ export const getSubCategoryLocationDetailsService = async (slug, location, page 
     },
 
     location,
-    page: Number(page),
-    limit: Number(limit),
-    totalProducts: products.length,
-    totalPages: Math.ceil(products.length / limit),
+    fallbackApplied,
+    fallbackLocation: fallbackApplied ? "Delhi" : null,
+
+    page,
+    limit,
+    totalProducts,
+    totalPages: Math.ceil(totalProducts / limit),
     products: final,
   };
 };
+
 
 
 export const createCategory = async ({ name, metaTitle, metaDescription, imageAlt, categoryDescription, citymetaTitle, citymetaDescription, industryId, parentCategoryId, faqs, file, }) => {
