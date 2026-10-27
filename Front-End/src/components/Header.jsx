@@ -55,10 +55,6 @@ export default function Header({ user, name, openSideBar, setOpenSideBar }) {
                             </div>
 
                             <div className="border-t border-gray-300 flex flex-col">
-                                <Link to="/profile" className="w-full px-4 py-2 text-left hover:bg-gray-50 transition border-b border-gray-300">
-                                    Profile
-                                </Link>
-
                                 <Link to="/settings" className="w-full px-4 py-2 text-left hover:bg-gray-50 transition border-b border-gray-300">
                                     Settings
                                 </Link>

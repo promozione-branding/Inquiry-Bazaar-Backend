@@ -10,6 +10,7 @@ import categoryRoutes from "./modules/categories/routes/category.route.js";
 import searchRoutes from "./modules/search/routes/search.route.js";
 import productRoutes from "./modules/products/routes/product.route.js";
 import userWebpageRoutes from "./modules/users/routes/userWebpage.route.js";
+import dashboardRoutes from "./modules/dashboard/routes/dashboard.route.js";
 import authRoutes from "./modules/users/routes/userAuth.route.js";
 import dirRoutes from "./modules/users/routes/dirUser.route.js";
 import buyerRoutes from "./modules/users/routes/buyer.route.js";
@@ -57,6 +58,7 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/admin/dashboard", dashboardRoutes);
 app.use("/api/dir", dirRoutes);
 app.use("/api/buyer", buyerRoutes);
 app.use("/api/supplier", supplierRoutes);

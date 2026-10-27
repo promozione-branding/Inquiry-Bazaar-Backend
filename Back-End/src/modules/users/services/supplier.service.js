@@ -1,6 +1,8 @@
 import User from "../models/user.model.js";
 import Business from "../models/userBusiness.model.js";
 import Membership from "../models/userMembership.model.js";
+import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
 export const getAllSuppliersService = async ({ page, limit, search, city, membershipType, dateFilter = "all", }) => {
   const skip = (page - 1) * limit;
@@ -138,6 +140,312 @@ export const getSupplierByIdService = async (id) => {
   return {
     ...supplier,
     business,
+  };
+};
+
+const USER_FIELDS = [
+  "name",
+  "email",
+  "phone",
+  "otherEmail",
+  "otherPhone",
+  "profileImage",
+];
+
+const BUSINESS_FIELDS = [
+  "companyName",
+  "ceoName",
+  "gstNumber",
+  "establishedDate",
+  "ownershipType",
+  "businessType",
+  "businessField",
+  "annualTurnover",
+  "numberOfEmployees",
+  "address",
+  "city",
+  "state",
+];
+
+const SOCIAL_FIELDS = [
+  "facebook",
+  "instagram",
+  "linkedin",
+  "youtube",
+  "telegram",
+  "whatsapp",
+  "twitter",
+];
+
+const errorWithStatus = (message, statusCode = 400) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
+const pickFields = (source, fields) => {
+  const result = {};
+
+  for (const field of fields) {
+    if (
+      Object.prototype.hasOwnProperty.call(source, field)
+    ) {
+      result[field] = source[field];
+    }
+  }
+
+  return result;
+};
+
+export const updateSupplierByIdService = async (id, payload) => {
+  if (!mongoose.isValidObjectId(id)) {
+    throw errorWithStatus("Invalid supplier ID");
+  }
+
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw errorWithStatus("Invalid request body");
+  }
+
+  const supplier = await User.findOne({ _id: id, role: "supplier", });
+  if (!supplier) return null;
+
+  const userUpdates = pickFields(payload, USER_FIELDS);
+
+  // Validate and normalize user fields
+  for (const [key, value] of Object.entries(userUpdates)) {
+    if (typeof value !== "string") {
+      throw errorWithStatus(`${key} must be a string`);
+    }
+
+    userUpdates[key] = value.trim();
+  }
+
+  if ("name" in userUpdates && !userUpdates.name) {
+    throw errorWithStatus("Name is required");
+  }
+
+  if ("email" in userUpdates) {
+    userUpdates.email = userUpdates.email.toLowerCase();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userUpdates.email)) {
+      throw errorWithStatus("Invalid email address");
+    }
+
+    const exists = await User.exists({
+      email: userUpdates.email,
+      _id: { $ne: supplier._id },
+    });
+
+    if (exists) {
+      throw errorWithStatus("Email already exists", 409);
+    }
+  }
+
+  // Optional password update
+  if (
+    payload.newPassword !== undefined &&
+    payload.newPassword !== ""
+  ) {
+    if (
+      typeof payload.newPassword !== "string" ||
+      payload.newPassword.length < 10 ||
+      Buffer.byteLength(payload.newPassword, "utf8") > 72
+    ) {
+      throw errorWithStatus(
+        "Password must be 10-72 UTF-8 bytes"
+      );
+    }
+
+    userUpdates.password = await bcrypt.hash(payload.newPassword, 10);
+  }
+
+  // Business fields
+  const businessInput =
+    payload.business === undefined
+      ? null
+      : payload.business;
+
+  if (
+    businessInput !== null &&
+    (
+      typeof businessInput !== "object" ||
+      Array.isArray(businessInput)
+    )
+  ) {
+    throw errorWithStatus("Invalid business data");
+  }
+
+  const businessUpdates = businessInput
+    ? pickFields(businessInput, BUSINESS_FIELDS)
+    : {};
+
+  for (const [key, value] of Object.entries(
+    businessUpdates
+  )) {
+    if (key === "establishedDate") {
+      if (value === "" || value === null) {
+        businessUpdates[key] = null;
+      } else {
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+          throw errorWithStatus(
+            "Invalid established date"
+          );
+        }
+
+        businessUpdates[key] = date;
+      }
+    } else {
+      if (typeof value !== "string") {
+        throw errorWithStatus(
+          `${key} must be a string`
+        );
+      }
+
+      businessUpdates[key] = value.trim();
+    }
+  }
+
+  if (
+    "city" in businessUpdates &&
+    !businessUpdates.city
+  ) {
+    throw errorWithStatus("Business city is required");
+  }
+
+  if ("gstNumber" in businessUpdates) {
+    businessUpdates.gstNumber =
+      businessUpdates.gstNumber.toUpperCase();
+  }
+
+  // Social links
+  if (businessInput?.social !== undefined) {
+    if (
+      !businessInput.social ||
+      typeof businessInput.social !== "object" ||
+      Array.isArray(businessInput.social)
+    ) {
+      throw errorWithStatus("Invalid social links");
+    }
+
+    const socialUpdates = pickFields(
+      businessInput.social,
+      SOCIAL_FIELDS
+    );
+
+    for (const [key, value] of Object.entries(
+      socialUpdates
+    )) {
+      if (typeof value !== "string") {
+        throw errorWithStatus(
+          `${key} must be a string`
+        );
+      }
+
+      const trimmed = value.trim();
+
+      if (trimmed) {
+        let url;
+
+        try {
+          url = new URL(trimmed);
+        } catch {
+          throw errorWithStatus(
+            `Invalid ${key} URL`
+          );
+        }
+
+        if (
+          !["https:", "http:"].includes(
+            url.protocol
+          )
+        ) {
+          throw errorWithStatus(
+            `Invalid ${key} URL`
+          );
+        }
+      }
+
+      businessUpdates[`social.${key}`] = trimmed;
+    }
+  }
+
+  // Validate updates before writing
+  const userToValidate = new User({
+    ...supplier.toObject(),
+    ...userUpdates,
+  });
+
+  await userToValidate.validate();
+
+  let existingBusiness = null;
+
+  if (Object.keys(businessUpdates).length > 0) {
+    existingBusiness = await Business.findOne({
+      userId: supplier._id,
+    });
+
+    if (!existingBusiness) {
+      throw errorWithStatus(
+        "Supplier business record not found",
+        404
+      );
+    }
+
+    const businessToValidate = new Business(
+      existingBusiness.toObject()
+    );
+
+    businessToValidate.set(businessUpdates);
+    await businessToValidate.validate();
+  }
+
+  // Atomic update across both collections
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      if (Object.keys(userUpdates).length > 0) {
+        await User.updateOne(
+          {
+            _id: supplier._id,
+            role: "supplier",
+          },
+          { $set: userUpdates },
+          { session, runValidators: true }
+        );
+      }
+
+      if (Object.keys(businessUpdates).length > 0) {
+        await Business.updateOne(
+          { userId: supplier._id },
+          { $set: businessUpdates },
+          { session, runValidators: true }
+        );
+      }
+    });
+  } finally {
+    await session.endSession();
+  }
+
+  const [updatedUser, updatedBusiness] =
+    await Promise.all([
+      User.findOne({
+        _id: supplier._id,
+        role: "supplier",
+      })
+        .select("-password")
+        .lean(),
+
+      Business.findOne({
+        userId: supplier._id,
+      }).lean(),
+    ]);
+
+  return {
+    ...updatedUser,
+    business: updatedBusiness,
   };
 };
 

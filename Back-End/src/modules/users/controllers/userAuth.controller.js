@@ -1,4 +1,4 @@
-import { loginService } from "../services/userAuth.service.js";
+import { changeAdminPasswordService, getAdminSettingsService, loginService, updateAdminProfileService } from "../services/userAuth.service.js";
 
 export const adminLogin = async (req, res) => {
   try {
@@ -33,4 +33,79 @@ export const adminMe = async (req, res) => {
     success: true,
     user: req.user,
   });
+};
+
+const getAdminId = (req) => req.user?._id;
+
+const sendError = (res, error) => {
+  console.error("Admin settings error:", error);
+
+  const status = error.code === 11000
+    ? 409
+    : error.statusCode || 500;
+
+  return res.status(status).json({
+    success: false,
+    message:
+      error.code === 11000
+        ? "Email already registered"
+        : status === 500
+          ? "Something went wrong"
+          : error.message,
+  });
+};
+
+// Optional: reuse this in your existing adminMe controller
+export const getAdminSettings = async (req, res) => {
+  try {
+    const adminId = getAdminId(req);
+
+    const admin = await getAdminSettingsService(adminId);
+
+    return res.status(200).json({
+      success: true,
+      data: admin,
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+// UPDATE ADMIN PROFILE
+export const updateAdminProfile = async (req, res) => {
+  try {
+    const adminId = getAdminId(req);
+
+    const admin = await updateAdminProfileService(
+      adminId,
+      req.body || {}
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin profile updated successfully",
+      data: admin,
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+// CHANGE ADMIN PASSWORD
+export const changeAdminPassword = async (req, res) => {
+  try {
+    const adminId = getAdminId(req);
+
+    const result = await changeAdminPasswordService(
+      adminId,
+      req.body || {}
+    );
+
+    return res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    return sendError(res, error);
+  }
 };
