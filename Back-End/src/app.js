@@ -17,6 +17,7 @@ import buyerRoutes from "./modules/users/routes/buyer.route.js";
 import supplierRoutes from "./modules/users/routes/supplier.route.js";
 import employeeRoutes from "./modules/users/routes/employee.routes.js";
 import helpRoutes from "./modules/help/routes/help.routes.js";
+import leadRoutes from "./modules/leads/routes/leads.route.js";
 import supplierMembershipRoutes from "./modules/users/routes/supplierMembership.route.js";
 import connectDB from "./config/db.js";
 
@@ -65,6 +66,7 @@ app.use("/api/supplier", supplierRoutes);
 app.use("/api/assign-employee", employeeRoutes);
 app.use("/api/supplier/membership", supplierMembershipRoutes);
 app.use("/api/help", helpRoutes);
+app.use("/api/leads", leadRoutes);
 app.use("/api/industries", industryRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/search", searchRoutes);
